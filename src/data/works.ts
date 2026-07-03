@@ -13,12 +13,12 @@ export type Work = {
 /** 线上产品 — 全部可点开试用 */
 export const works: Work[] = [
   {
-    id: "tkb",
-    title: "TKB · 学者的 AI 经纪人",
-    subtitle: "TKB",
+    id: "poti",
+    title: "破题 · 学者的申报参谋",
+    subtitle: "破题",
     description:
-      "上传简历、论文、课题，LLM 持续编译成活文档画像——学术品牌、研究方向、项目经历三条线同步生长，主动塑造品牌、辅助科研、承接项目。",
-    tags: ["FastAPI", "Next.js", "LLM Wiki", "DeepSeek"],
+      "帮高校教师拿下基金本子的 AI 参谋。上传简历、论文、课题，LLM 编译成你的一组活文档画像，再从画像里长出申报方向、立项依据与研究基础初稿——不替你写本子，而是把你多年的积累先码放整齐。",
+    tags: ["FastAPI", "Next.js", "画像引擎", "DeepSeek"],
     year: "2026 · Demo 已上线",
     audience: "高校教师 / 研究者",
     color: "terracotta",
