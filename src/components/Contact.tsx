@@ -1,55 +1,74 @@
-import { SquiggleLine } from "./Doodles";
+import { Reveal } from "./Reveal";
 
-const links = [
-  {
-    label: "Email",
-    value: "hello@shizifan.dev",
-    href: "mailto:hello@shizifan.dev",
-  },
-  { label: "GitHub", value: "@shizifan", href: "https://github.com/" },
-  { label: "Twitter / X", value: "@shizifan", href: "https://twitter.com/" },
-  { label: "微信 · WeChat", value: "shizifan", href: "#" },
+// TODO(石子凡)：公众号 / 微信 / GitHub 定下来后在这里补充
+const topics = [
+  "Agent 工程落地",
+  "企业 AI 培训 / 内训",
+  "产品合作",
+  "或者只是聊聊",
 ];
 
 export function Contact() {
   return (
-    <section
-      id="contact"
-      className="max-w-6xl mx-auto px-6 md:px-12 py-24 border-t border-line"
-    >
-      <p className="label mb-8">Contact</p>
-      <div className="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20 items-start">
-        <div>
-          <h2 className="font-display-cn text-3xl md:text-4xl text-ink leading-tight mb-3">
-            想聊聊？
-          </h2>
-          <SquiggleLine className="w-20 h-2 text-terracotta mb-5" />
-          <p className="text-ink-soft text-[15px] leading-relaxed max-w-xs">
-            无论是产品合作、AI 应用咨询，还是只是想交个朋友——
-            选一个你顺手的方式联系我。
+    <section id="contact">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-28">
+        <Reveal>
+          <p className="sec-label mb-4">
+            <b>06</b> / CONTACT
           </p>
+        </Reveal>
+
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+          <div>
+            <Reveal delay={60}>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight leading-tight mb-8">
+                想聊聊？
+                <br />
+                <a
+                  href="mailto:shizifan@gmail.com"
+                  className="mono text-accent text-2xl md:text-4xl hover:brightness-110 transition-all duration-200 break-all"
+                >
+                  shizifan@gmail.com
+                </a>
+              </h2>
+            </Reveal>
+          </div>
+
+          <Reveal delay={140}>
+            <p className="text-dim text-[15px] leading-relaxed mb-5">
+              我长期关注这几件事，如果你也在做，欢迎直接来信：
+            </p>
+            <ul className="space-y-3">
+              {topics.map((t, i) => (
+                <li
+                  key={t}
+                  className="flex items-baseline gap-4 text-[15px] text-dim border-b border-line pb-3"
+                >
+                  <span className="mono text-xs text-accent">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-x-12 gap-y-1">
-          {links.map((l) => (
+        {/* Footer */}
+        <footer className="mt-24 pt-8 border-t border-line flex items-center justify-between flex-wrap gap-3 mono text-xs text-faint tracking-wider">
+          <span>© {new Date().getFullYear()} SHIZIFAN.COM</span>
+          <div className="flex items-center gap-8">
+            <span>相信未来 / 笃行当下</span>
             <a
-              key={l.label}
-              href={l.href}
-              className="flex items-baseline justify-between gap-6 py-4 border-b border-line group"
+              href="#top"
+              className="hover:text-accent transition-colors duration-200"
+              aria-label="回到页面顶部"
             >
-              <span className="label !text-ink-faded">{l.label}</span>
-              <span className="text-ink group-hover:text-terracotta transition-colors text-[15px]">
-                {l.value}
-              </span>
+              ↑ TOP
             </a>
-          ))}
-        </div>
+          </div>
+        </footer>
       </div>
-
-      <footer className="mt-20 pt-8 border-t border-line flex items-center justify-between text-xs text-ink-faded flex-wrap gap-3">
-        <span>© {new Date().getFullYear()} 石子凡 · Shi Zifan</span>
-        <span>Built with Next.js · Designed in Figma</span>
-      </footer>
     </section>
   );
 }

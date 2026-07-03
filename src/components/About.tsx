@@ -1,43 +1,102 @@
 import { skills } from "@/data/works";
-import { SquiggleLine } from "./Doodles";
+import { Reveal, SectionHead } from "./Reveal";
+
+const metrics = [
+  { value: "15", unit: "年", label: "大数据与 AI 实战" },
+  { value: "6", unit: "个", label: "已上线个人产品" },
+  { value: "10", unit: "+", label: "企业级 AI 项目落地" },
+  { value: "数千", unit: "人", label: "单场培训覆盖" },
+];
+
+const track = [
+  { period: "2012—2016", area: "大数据平台", note: "离线计算 · 广告计算 · 核心指标体系" },
+  { period: "2016—2018", area: "人工智能中台", note: "多行业头部客户的运维平台产品" },
+  { period: "2018—2025", area: "数字化运营平台", note: "统一门户 · RAG 知识问答 · 智能客服" },
+  { period: "2025——", area: "AI 智能体平台", note: "跨业务场景的 Agent 架构设计与落地" },
+];
 
 export function About() {
   return (
-    <section
-      id="about"
-      className="max-w-6xl mx-auto px-6 md:px-12 py-24 border-t border-line"
-    >
-      <p className="label mb-8">About</p>
-      <div className="grid md:grid-cols-[1fr_2fr] gap-12 md:gap-20 items-start">
-        <h2 className="font-display-cn text-3xl md:text-4xl text-ink leading-tight">
-          关于我
-          <SquiggleLine className="w-20 h-2 text-terracotta mt-3" />
-        </h2>
+    <section id="metrics" className="border-b border-line">
+      {/* Metrics strip */}
+      <div className="max-w-7xl mx-auto px-6 md:px-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 border-x border-line divide-x divide-y lg:divide-y-0 divide-[rgba(230,238,245,0.09)]">
+          {metrics.map((m, i) => (
+            <Reveal key={m.label} delay={i * 70} className="p-6 md:p-8">
+              <div className="metric">
+                {m.value}
+                <em>{m.unit}</em>
+              </div>
+              <p className="mono text-[11px] tracking-wider text-faint mt-3">
+                {m.label}
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
 
-        <div className="space-y-6 text-ink-soft text-[17px] md:text-lg leading-[1.85]">
-          <p>
-            我是一名<span className="mark">产品工程师</span>
-            ，从设计、产品到全栈实现都参与。最近两年最让我兴奋的，是 AI
-            把"创造一个东西"的门槛拉低了好多——
-            许多过去需要几个月才能验证的想法，现在跟模型协作一晚上就能跑起来。
-          </p>
-          <p>
-            我做的项目大多围绕同一个问题：
-            <span className="mark-sage">如何让 AI 真正服务于普通人</span>
-            ，无论是企业里的业务专家、社区里的孩子，还是招聘市场上的蓝领候选人。
-            如果你正在做类似方向的事，欢迎聊聊。
-          </p>
+      {/* About body */}
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-28">
+        <SectionHead index="01" label="PROFILE" title="关于我" />
 
-          <div className="pt-6">
-            <p className="label mb-4">Stack</p>
-            <div className="flex flex-wrap gap-2">
-              {skills.map((s) => (
-                <span key={s} className="chip">
-                  {s}
-                </span>
+        <div className="grid lg:grid-cols-2 gap-14 lg:gap-20 items-start">
+          {/* Left — narrative */}
+          <div className="space-y-6 text-dim text-base md:text-[17px] leading-[1.95]">
+            <Reveal as="p">
+              从 2012
+              年起，我做过互联网离线计算平台、广告大数据、智能运维和数字化运营平台；现在的角色是
+              AI 架构师，
+              <span className="text-text">
+                主导跨业务场景的智能体系统架构设计与落地
+              </span>
+              。
+            </Reveal>
+            <Reveal as="p" delay={80}>
+              我写三类东西：Agent 工程的实操方法，工业重场景里 AI
+              落地的真实边界，大组织做 AI
+              的非技术路径。此外，我做过几十场企业级 AI
+              培训与分享，
+              <span className="text-text">单场覆盖数千人规模</span>。
+            </Reveal>
+
+            <Reveal delay={140}>
+              <div className="pt-4">
+                <p className="sec-label mb-4">
+                  <b>&gt;</b> STACK
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {skills.map((s) => (
+                    <span key={s} className="tag">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* Right — track record */}
+          <Reveal delay={100}>
+            <p className="sec-label mb-5">
+              <b>&gt;</b> TRACK
+            </p>
+            <div className="border-t border-line">
+              {track.map((t) => (
+                <div
+                  key={t.period}
+                  className="grid grid-cols-[105px_1fr] md:grid-cols-[130px_1fr] gap-4 py-4 border-b border-line items-baseline"
+                >
+                  <span className="mono text-xs text-faint tracking-wider">
+                    {t.period}
+                  </span>
+                  <span className="text-[15px] leading-relaxed">
+                    <span className="text-text font-medium">{t.area}</span>
+                    <span className="text-faint"> · {t.note}</span>
+                  </span>
+                </div>
               ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

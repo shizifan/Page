@@ -1,151 +1,209 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #faf6ef;
-  --paper-2: #fefcf7;
-  --ink: #2a1f17;
-  --ink-soft: #5e4a3c;
-  --ink-faded: #9b8674;
-  --accent-terracotta: #c66648;
-  --accent-peach: #d8a577;
-  --accent-sage: #8a9d6f;
-  --accent-mustard: #c39a44;
-  --accent-rose: #b97987;
-  --line: rgba(42, 31, 23, 0.08);
-  --line-strong: rgba(42, 31, 23, 0.16);
+  --bg: #0a0d10;
+  --bg-raise: #10151a;
+  --bg-raise-2: #151c23;
+  --line: rgba(230, 238, 245, 0.09);
+  --line-strong: rgba(230, 238, 245, 0.18);
+  --text: #e8edf2;
+  --text-dim: #97a4b1;
+  --text-faint: #59656f;
+  --accent: #ffb224;
+  --accent-dim: rgba(255, 178, 36, 0.14);
+  --ok: #34d97b;
 }
 
 @theme inline {
-  --color-background: var(--paper);
-  --color-foreground: var(--ink);
-  --color-paper: var(--paper);
-  --color-paper-2: var(--paper-2);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-faded: var(--ink-faded);
-  --color-terracotta: var(--accent-terracotta);
-  --color-peach: var(--accent-peach);
-  --color-sage: var(--accent-sage);
-  --color-mustard: var(--accent-mustard);
-  --color-rose: var(--accent-rose);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-bg: var(--bg);
+  --color-raise: var(--bg-raise);
+  --color-raise-2: var(--bg-raise-2);
+  --color-text: var(--text);
+  --color-dim: var(--text-dim);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
   --color-line: var(--line);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-fraunces);
-  --font-serif-cn: var(--font-noto-serif-sc);
+  --font-sans: var(--font-grotesk);
+  --font-mono: var(--font-jbmono);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--text);
 }
 
 body {
-  font-family: var(--font-inter), "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", system-ui, sans-serif;
-  font-feature-settings: "kern", "liga", "calt";
-  letter-spacing: 0.005em;
+  font-family: var(--font-grotesk), var(--font-noto-sans-sc), "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  font-feature-settings: "kern", "liga", "calt", "tnum";
+  letter-spacing: 0.01em;
 }
 
-/* Editorial display type — Fraunces for Latin, Noto Serif SC for Chinese */
-.font-display {
-  font-family: var(--font-fraunces), var(--font-noto-serif-sc), "Songti SC",
-    "STSong", serif;
-  font-feature-settings: "ss01", "kern";
-  letter-spacing: -0.01em;
-}
-
-.font-display-cn {
-  font-family: var(--font-noto-serif-sc), var(--font-fraunces), "Songti SC",
-    "STSong", serif;
-  letter-spacing: 0.02em;
-}
-
-/* Refined squiggle — single, thin pen stroke */
-.squiggle {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 6' preserveAspectRatio='none'><path d='M2 4 Q 15 1 30 4 T 60 4 T 90 4 T 118 4' fill='none' stroke='%23c66648' stroke-width='1.5' stroke-linecap='round'/></svg>");
-  background-repeat: repeat-x;
-  background-size: 120px 6px;
-  background-position: 0 100%;
-  padding-bottom: 0.18em;
-}
-
-/* Subtle highlight — book-like marker, low opacity */
-.mark {
-  background: linear-gradient(
+/* Blueprint grid — faint engineering paper */
+.blueprint {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 85%);
+  -webkit-mask-image: linear-gradient(
     180deg,
-    transparent 62%,
-    rgba(198, 102, 72, 0.18) 62%,
-    rgba(198, 102, 72, 0.18) 92%,
-    transparent 92%
+    rgba(0, 0, 0, 0.7),
+    transparent 85%
   );
-  padding: 0 0.1em;
-}
-.mark-sage {
-  background: linear-gradient(
-    180deg,
-    transparent 62%,
-    rgba(138, 157, 111, 0.22) 62%,
-    rgba(138, 157, 111, 0.22) 92%,
-    transparent 92%
-  );
-  padding: 0 0.1em;
 }
 
-/* Editorial card — clean rounded with subtle shadow + thin warm border */
-.editorial-card {
-  background: var(--paper-2);
+/* Monospace utility */
+.mono {
+  font-family: var(--font-jbmono), "SF Mono", "Menlo", monospace;
+  font-feature-settings: "tnum", "zero";
+}
+
+/* Section index label — 01 / PRODUCTS */
+.sec-label {
+  font-family: var(--font-jbmono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.sec-label b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Live status dot */
+.dot-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(52, 217, 123, 0.15);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(52, 217, 123, 0.15); }
+  50% { box-shadow: 0 0 0 6px rgba(52, 217, 123, 0.05); }
+}
+
+/* Panel — bordered raise surface */
+.panel {
+  background: var(--bg-raise);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow:
-    0 1px 0 rgba(42, 31, 23, 0.02),
-    0 12px 32px -20px rgba(42, 31, 23, 0.18);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: border-color 0.25s ease, background 0.25s ease,
+    transform 0.25s ease;
 }
-.editorial-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 1px 0 rgba(42, 31, 23, 0.02),
-    0 24px 48px -24px rgba(42, 31, 23, 0.22);
+.panel:hover {
+  border-color: var(--line-strong);
+  background: var(--bg-raise-2);
+}
+.panel-accent:hover {
+  border-color: rgba(255, 178, 36, 0.5);
 }
 
-/* Compact chip — for tags, no decoration */
-.chip {
+/* Tag chip — mono, squared */
+.tag {
+  font-family: var(--font-jbmono), monospace;
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.65rem;
-  border-radius: 4px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  background: rgba(42, 31, 23, 0.04);
-  color: var(--ink-soft);
-  letter-spacing: 0.02em;
+  padding: 0.18rem 0.5rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  background: transparent;
 }
 
-/* Index label — small caps, refined */
-.label {
-  font-family: var(--font-fraunces), serif;
-  font-feature-settings: "smcp", "c2sc";
-  font-style: italic;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faded);
+/* Big metric number */
+.metric {
+  font-family: var(--font-jbmono), monospace;
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  font-feature-settings: "tnum";
+}
+.metric em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* Accent link with arrow */
+.alink {
+  color: var(--text-dim);
+  transition: color 0.2s ease;
+}
+.alink:hover {
+  color: var(--accent);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(198, 102, 72, 0.22);
-  color: var(--ink);
+  background: rgba(255, 178, 36, 0.28);
+  color: #fff;
 }
 
-/* A very faint paper grain — kept minimal */
-.bg-grain {
-  background-image: radial-gradient(
-    rgba(42, 31, 23, 0.035) 1px,
-    transparent 1px
-  );
-  background-size: 28px 28px;
-  background-position: 0 0;
+/* Sticky nav scrolled state */
+.nav-scrolled {
+  background: rgba(10, 13, 16, 0.82);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Reveal animation */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal {
+  animation: rise 0.55s cubic-bezier(0.19, 1, 0.22, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+.pre-reveal {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .pre-reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .dot-live {
+    animation: none;
+  }
+}
+
+/* Anchor offset for sticky nav */
+section[id] {
+  scroll-margin-top: 76px;
+}
+
+/* Thin custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #232c34;
+  border: 3px solid var(--bg);
+  border-radius: 8px;
 }

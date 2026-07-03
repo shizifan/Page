@@ -1,94 +1,71 @@
-import { works, type Work } from "@/data/works";
-import { ArrowRight } from "./Doodles";
-
-const accentMap: Record<Work["color"], string> = {
-  terracotta: "linear-gradient(135deg, #efc8b5 0%, #d8a18a 100%)",
-  sage: "linear-gradient(135deg, #cfd9b8 0%, #aab98a 100%)",
-  peach: "linear-gradient(135deg, #f0cfb1 0%, #d9a47e 100%)",
-  mustard: "linear-gradient(135deg, #e8d398 0%, #c9a85a 100%)",
-  rose: "linear-gradient(135deg, #e6c5cb 0%, #c69aa3 100%)",
-};
-
-const categoryLabel: Record<Work["category"], string> = {
-  design: "Product · 产品",
-  code: "Engineering · 工程",
-  writing: "Writing · 写作",
-  other: "Other",
-};
-
-function WorkCard({ work, index }: { work: Work; index: number }) {
-  const idx = String(index + 1).padStart(2, "0");
-  return (
-    <article className="editorial-card overflow-hidden flex flex-col h-full group">
-      {/* Cover band — subtle gradient, no childish doodle */}
-      <div
-        className="h-32 relative flex items-end justify-between px-5 pb-4"
-        style={{ background: accentMap[work.color] }}
-      >
-        <span className="font-display italic text-3xl text-ink/75">
-          {work.subtitle}
-        </span>
-        <span className="label !text-ink/55">{idx}</span>
-      </div>
-
-      <div className="p-6 md:p-7 flex-1 flex flex-col">
-        <div className="flex items-center justify-between mb-3 text-xs text-ink-faded">
-          <span className="label !text-ink-faded">
-            {categoryLabel[work.category]}
-          </span>
-          <span>{work.year}</span>
-        </div>
-
-        <h3 className="font-display-cn text-2xl text-ink leading-snug mb-2">
-          {work.title}
-        </h3>
-
-        <p className="text-ink-soft text-[15px] leading-[1.75] mb-5 flex-1">
-          {work.description}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5 mb-5">
-          {work.tags.map((t) => (
-            <span key={t} className="chip">
-              {t}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-line">
-          <span className="text-xs text-ink-faded">{work.audience}</span>
-          <span className="inline-flex items-center gap-2 text-sm text-ink-soft group-hover:text-terracotta transition-colors">
-            了解更多 <ArrowRight className="w-4 h-2 group-hover:translate-x-0.5 transition-transform" />
-          </span>
-        </div>
-      </div>
-    </article>
-  );
-}
+import { works } from "@/data/works";
+import { Reveal, SectionHead } from "./Reveal";
 
 export function Works() {
   return (
-    <section
-      id="works"
-      className="max-w-6xl mx-auto px-6 md:px-12 py-24 border-t border-line"
-    >
-      <div className="mb-14 flex items-end justify-between flex-wrap gap-6">
-        <div>
-          <p className="label mb-4">Selected Works</p>
-          <h2 className="font-display-cn text-3xl md:text-4xl text-ink leading-tight">
-            最近的一些工作
-          </h2>
-        </div>
-        <p className="text-ink-soft text-[15px] max-w-sm leading-relaxed">
-          从企业级 BI Agent，到面向儿童的 AI 素养教育，再到个人知识系统——
-          一组围绕"让 AI 真正可用"展开的实践。
-        </p>
-      </div>
+    <section id="products" className="border-b border-line">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-28">
+        <SectionHead
+          index="02"
+          label="LIVE PRODUCTS"
+          title="线上产品"
+          note="六个已上线、可点开试用的产品。全部独立完成——产品、开发、部署、运维。"
+        />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
-        {works.map((w, i) => (
-          <WorkCard key={w.id} work={w} index={i} />
-        ))}
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-px bg-[rgba(230,238,245,0.09)] border border-line">
+          {works.map((w, i) => {
+            const domain = w.link?.replace("https://", "") ?? "";
+            return (
+              <Reveal key={w.id} delay={(i % 3) * 80} className="bg-bg">
+                <a
+                  href={w.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="panel panel-accent !border-0 flex flex-col h-full p-7 md:p-8 group"
+                >
+                  {/* Header row */}
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="mono text-xs text-faint">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="mono text-[10px] tracking-[0.18em] text-ok flex items-center gap-2">
+                      <span className="dot-live" aria-hidden="true" />
+                      LIVE
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl md:text-2xl font-bold tracking-tight mb-1 group-hover:text-accent transition-colors duration-200">
+                    {w.title}
+                  </h3>
+                  <p className="mono text-[11px] text-faint tracking-wider mb-5">
+                    {w.audience} · {w.year}
+                  </p>
+
+                  <p className="text-dim text-[14.5px] leading-[1.85] mb-6 flex-1">
+                    {w.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5 mb-6">
+                    {w.tags.map((t) => (
+                      <span key={t} className="tag">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mono text-xs flex items-center justify-between pt-4 border-t border-line">
+                    <span className="text-faint group-hover:text-dim transition-colors duration-200">
+                      {domain}
+                    </span>
+                    <span className="text-dim group-hover:text-accent transition-all duration-200 group-hover:translate-x-0.5">
+                      ↗
+                    </span>
+                  </div>
+                </a>
+              </Reveal>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

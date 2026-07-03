@@ -1,31 +1,44 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Noto_Serif_SC } from "next/font/google";
+import { JetBrains_Mono, Noto_Sans_SC, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const grotesk = Space_Grotesk({
+  variable: "--font-grotesk",
   subsets: ["latin"],
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const jbmono = JetBrains_Mono({
+  variable: "--font-jbmono",
   subsets: ["latin"],
-  axes: ["SOFT", "WONK", "opsz"],
   display: "swap",
 });
 
-const notoSerifSC = Noto_Serif_SC({
-  variable: "--font-noto-serif-sc",
-  weight: ["400", "500", "600", "700"],
+const notoSansSC = Noto_Sans_SC({
+  variable: "--font-noto-sans-sc",
+  weight: ["400", "500", "700"],
   display: "swap",
   preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "石子凡 · 作品集",
+  title: "让 AI 为人创造价值",
   description:
-    "石子凡的个人作品集 — 用 AI 把好工具带给更多人。涵盖企业 BI、AI 教育、招聘自动化与个人知识系统等方向。",
+    "石子凡，AI 架构师，15 年大数据与人工智能实战。Agent 工程、企业级 AI 落地、AI 素养教育。六个已上线的个人产品，皆可点开试用。",
+  keywords: [
+    "石子凡",
+    "AI 架构师",
+    "Agent 工程",
+    "智能体",
+    "企业 AI 培训",
+  ],
+  openGraph: {
+    title: "石子凡 · AI 架构师",
+    description: "相信未来，笃行当下，让 AI 为人创造价值。",
+    url: "https://shizifan.com",
+    locale: "zh_CN",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -36,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${inter.variable} ${fraunces.variable} ${notoSerifSC.variable} h-full antialiased`}
+      className={`${grotesk.variable} ${jbmono.variable} ${notoSansSC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
