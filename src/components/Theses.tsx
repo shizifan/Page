@@ -17,7 +17,7 @@ export function Theses() {
           </p>
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[rgba(230,238,245,0.09)] border border-line">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--line)] border border-line">
           {theses.map((t, i) => (
             <Reveal key={t.no} delay={(i % 3) * 80} className="bg-bg">
               <div className="panel !border-0 h-full p-7 md:p-8">

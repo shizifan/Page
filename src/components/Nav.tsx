@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export function Nav() {
@@ -51,6 +52,12 @@ export function Nav() {
               {l.label}
             </a>
           ))}
+          <Link
+            href="/"
+            className="mono text-xs border border-accent/40 text-accent px-3 py-1.5 hover:bg-accent hover:text-white transition-colors duration-200"
+          >
+            🗺️ 世界地图
+          </Link>
           <a
             href="mailto:shizifan@gmail.com"
             className="mono text-xs border border-line px-3 py-1.5 text-dim hover:text-accent hover:border-accent/50 transition-colors duration-200"
@@ -101,6 +108,12 @@ export function Nav() {
               {l.label}
             </a>
           ))}
+          <Link
+            href="/"
+            className="text-base text-accent hover:brightness-110 transition-all duration-200"
+          >
+            🗺️ 世界地图版
+          </Link>
         </div>
       </div>
     </nav>

@@ -34,8 +34,8 @@ export function Reveal({
   }, []);
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <Tag
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 多态标签的 ref 联合类型无法收窄
       ref={ref as any}
       className={`${inView ? "reveal" : "pre-reveal"} ${className}`}
       style={{ "--delay": `${delay}ms` } as React.CSSProperties}

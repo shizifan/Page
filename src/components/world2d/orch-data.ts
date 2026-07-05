@@ -1,0 +1,299 @@
+import { enterpriseWorks, posts, skills, theses, works } from "@/data/works";
+import type { District, Poi } from "@/data/world";
+
+/**
+ * 「会呼吸的系统图」世界数据 —— 坐标基于 1400×1000 图板（x 右，y 下）。
+ * 布局与 orchestration-art-v2.js 的 v2 深化稿同源，
+ * 并落实评审意见：部署坞分两簇（K12 / 成人）、主干末端错落。
+ */
+
+export const BOARD = { w: 1400, h: 1000, margin: 46 };
+
+export const RING = { x0: 330, y0: 330, x1: 1010, y1: 690 };
+export const HUBS: Array<[number, number, number]> = [
+  [330, 330, 0],
+  [1010, 330, 1],
+  [1010, 690, 2],
+  [330, 690, 3],
+];
+/** 各枢纽在主环上的参数位（与 ringPoint 同参） */
+export const HUB_U = [0, 0.3269, 0.5, 0.8269];
+
+export const DEV_X = 1268;
+export const BUS_X = 1180;
+
+/**
+ * 部署坞分两簇：上簇是三件 K12 教育产品，下簇三件成人产品。
+ * slot: { workIdx: works 数组下标, y: 装置中心 }
+ */
+export const DEV_SLOTS: Array<{ workIdx: number; y: number }> = [
+  { workIdx: 1, y: 165 }, // AI侦探社 · 检验台
+  { workIdx: 2, y: 273 }, // 会问AI · 问答收发机
+  { workIdx: 3, y: 381 }, // Home · 暖箱
+  { workIdx: 0, y: 505 }, // 破题 · 蒸馏塔
+  { workIdx: 4, y: 613 }, // 松果 · 节律记录仪
+  { workIdx: 5, y: 721 }, // 港东五街 · 显影盘
+];
+export const DEV_HUES = ["#ffb224", "#5ac8fa", "#34d97b", "#ff8a5c", "#f472b6", "#a78bfa"];
+
+export const TOOL_WALL = { x: 800, y: 190 };
+export const TRUNK_XS = [600, 720, 840, 960];
+export const TRUNK_VALS = [0.92, 0.88, 0.95, 0.9];
+export const TRUNK_NAMES = ["商务智能Agent", "数据问答", "调度优化", "智能化战略"];
+/** 主干末端错落（评审 §一.2） */
+export const TRUNK_END_OFF = [0, -14, 8, -6];
+
+/** 六条观点载体（位置即语义） */
+export const CARRIERS = {
+  luggage: { x: BUS_X, y: 452 }, // 01 行李牌 · 拴在部署总线
+  enamel: { x: 498, y: 845 }, // 02 搪瓷牌 · 钉在生产主干旁
+  stencil: { x: 668, y: 800, text: "先问清楚，再动手" }, // 03 丝印在集流管上
+  note4: { x: 935, y: 512 }, // 04 图钉便签
+  note5: { x: 1105, y: 172 }, // 05 胶带便签
+  draft: { x: 455, y: 468 }, // 06 草稿纸 + 修订云线
+};
+
+export const ARCHIVES: Array<[number, number]> = [
+  [165, 858], // 机械龙虾 · 观察日志
+  [290, 852], // 行情纸带机 · 行情手记
+  [402, 848], // 三球轨道仪 · 三体讲义
+];
+
+export const CONSOLE: [number, number] = [128, 470];
+export const INBOX: [number, number] = [670, 510];
+export const TITLE_BLOCK: [number, number] = [1108, 866];
+
+export const SPAWN = { x: 670, z: 556, heading: Math.PI };
+
+/* ────────────────────────── 轨道图（全部轴对齐线段） ────────────────────────── */
+
+export type Seg = { x1: number; y1: number; x2: number; y2: number };
+
+export const TRACKS: Seg[] = (() => {
+  const s: Seg[] = [];
+  const add = (x1: number, y1: number, x2: number, y2: number) => s.push({ x1, y1, x2, y2 });
+  // 主环
+  add(RING.x0, RING.y0, RING.x1, RING.y0);
+  add(RING.x1, RING.y0, RING.x1, RING.y1);
+  add(RING.x1, RING.y1, RING.x0, RING.y1);
+  add(RING.x0, RING.y1, RING.x0, RING.y0);
+  // 部署总线（执行 → 右缘，上行 + 下延）
+  add(RING.x1, RING.y1, BUS_X, RING.y1);
+  add(BUS_X, RING.y1, BUS_X, 150);
+  add(BUS_X, RING.y1, BUS_X, 750);
+  // 六条装置支线
+  for (const d of DEV_SLOTS) add(BUS_X, d.y, DEV_X - 63, d.y);
+  // 生产集流管
+  add(RING.x1, RING.y1, RING.x1, 800);
+  add(RING.x1, 800, 560, 800);
+  // 四条主干
+  for (const x of TRUNK_XS) add(x, 800, x, 900);
+  return s;
+})();
+
+/* ────────────────────────── POI ────────────────────────── */
+
+const HUB_CARDS: Array<{ title: string; body: string; meta: string; hand: string }> = [
+  {
+    title: "感知 · PERCEIVE",
+    body: "拿到问题别急着跑。口径是什么，边界在哪，先问清楚。做数据问答那年最大的教训就是这个：错的从来不是 SQL，是没听懂人话。",
+    meta: "枢纽 01 · 把输入理顺",
+    hand: "先听懂，再动手",
+  },
+  {
+    title: "规划 · PLAN",
+    body: "大活拆小活，能并行的并行，该人拍板的地方留个口子。计划要是错了，下面干得越卖力越糟——这种项目我见过不止一个。",
+    meta: "枢纽 02 · 拆解与调度",
+    hand: "拆开就不吓人了",
+  },
+  {
+    title: "执行 · EXECUTE",
+    body: "能用规则的就不劳驾模型。跑起来的东西才算数，PPT 不算。右边六台装置里的东西，都是这么一点点跑出来的。",
+    meta: "枢纽 03 · 并行与交付",
+    hand: "跑起来才算数",
+  },
+  {
+    title: "记忆 · MEMORY",
+    body: "干完的活要归档，不然下个月又从头猜一遍。破题和 Home 都是从这个念头长出来的：一个帮学者把积累码放整齐，一个让孩子看着 AI 的记忆长大。",
+    meta: "枢纽 04 · 归档与再出发",
+    hand: "抽屉没关严，老卡片总想出来",
+  },
+];
+
+const DEV_HANDS = [
+  "每一滴都是方法",
+  "指纹在放大镜下过一遍",
+  "把问题发出去，等句点回来",
+  "它长大了就搬进去",
+  "心情也值得被记录",
+  "视线尽头有条船",
+];
+
+const productPois: Poi[] = DEV_SLOTS.map((slot, i) => {
+  const w = works[slot.workIdx];
+  return {
+    id: `product-${w.id}`,
+    kind: "product" as const,
+    x: 1238,
+    z: slot.y,
+    r: 54,
+    label: "已部署产品 / SHIPPED",
+    title: w.title,
+    body: w.description,
+    tags: w.tags,
+    meta: `${w.year} · ${w.audience}`,
+    link: w.link,
+    linkText: "访问端点 ↗",
+    hue: DEV_HUES[slot.workIdx],
+    no: `P${slot.workIdx + 1}`,
+    hand: DEV_HANDS[slot.workIdx],
+  };
+});
+
+const skillsPoi: Poi = {
+  id: "skills",
+  kind: "skills",
+  x: TOOL_WALL.x,
+  z: TOOL_WALL.y,
+  r: 105,
+  label: "工具墙 / TOOLBOARD",
+  title: "九件吃饭的家伙",
+  body: "越常用的越亮，把手都磨出包浆了。有一件不在墙上——被今天的任务借去修调度那条线了。从 Spark 到 Agent 工程，这面墙攒了十五年。",
+  tags: skills,
+  meta: "磨损度 = 被调用的深度",
+  no: "TB",
+  hand: "顺手的都磨亮了",
+};
+
+const TRUNK_HANDS = ["报告是一页页吐出来的", "先对齐口径再回答", "错峰，都过得去", "蓝图得先画对"];
+
+const enterprisePois: Poi[] = enterpriseWorks.map((e, i) => ({
+  id: `enterprise-${e.id}`,
+  kind: "enterprise" as const,
+  x: TRUNK_XS[i],
+  z: 856 + TRUNK_END_OFF[i],
+  r: 56,
+  label: "生产级主干 / PRODUCTION",
+  title: e.title,
+  body: e.detail,
+  tags: e.tags,
+  meta: `${e.result} · SLA ${Math.round(TRUNK_VALS[i] * 100)}%`,
+  no: `E${i + 1}`,
+  hand: TRUNK_HANDS[i],
+}));
+
+const THESIS_POS: Array<[number, number, number]> = [
+  // x, z, r —— 对应六种载体
+  [CARRIERS.luggage.x - 10, CARRIERS.luggage.y, 46],
+  [CARRIERS.enamel.x, CARRIERS.enamel.y, 46],
+  [CARRIERS.stencil.x, CARRIERS.stencil.y, 42],
+  [CARRIERS.note4.x, CARRIERS.note4.y, 52],
+  [CARRIERS.note5.x, CARRIERS.note5.y, 52],
+  [CARRIERS.draft.x, CARRIERS.draft.y, 50],
+];
+const THESIS_HANDS = ["装好就能用", "AI 是杠杆", "先问清楚", "把链路接回来", "贴着需求做", "还没想透的，圈起来"];
+
+const thesisPois: Poi[] = theses.map((t, i) => ({
+  id: `thesis-${t.no}`,
+  kind: "thesis" as const,
+  x: THESIS_POS[i][0],
+  z: THESIS_POS[i][1],
+  r: THESIS_POS[i][2],
+  label: `观点 ${t.no} / SYSTEM PROMPT`,
+  title: t.title,
+  body: t.body,
+  meta: "挂在系统上的约束",
+  no: `S${i + 1}`,
+  hand: THESIS_HANDS[i],
+}));
+
+const POST_HANDS = ["书读完了，它才站上去", "行情从未停", "谁也算不准"];
+const POST_METAS = ["观察日志 01 · 龙虾与书", "行情手记 02 · 纸带小山", "三体讲义 03 · 互绕不休"];
+
+const postPois: Poi[] = posts.map((p, i) => ({
+  id: `post-${i}`,
+  kind: "post" as const,
+  x: ARCHIVES[i][0],
+  z: ARCHIVES[i][1] - 20,
+  r: 48,
+  label: `记忆档案 / ARCHIVE`,
+  title: p.title,
+  body: p.summary,
+  meta: POST_METAS[i],
+  hue: "#7fa7c6",
+  no: `T${i + 1}`,
+  hand: POST_HANDS[i],
+}));
+
+const hubPois: Poi[] = HUBS.map(([x, y, k]) => ({
+  id: `hub-${k}`,
+  kind: "hub" as const,
+  x,
+  z: y,
+  r: 72,
+  label: "枢纽站 / HUB",
+  title: HUB_CARDS[k].title,
+  body: HUB_CARDS[k].body,
+  meta: HUB_CARDS[k].meta,
+  no: `H${k + 1}`,
+  hand: HUB_CARDS[k].hand,
+}));
+
+const contactPoi: Poi = {
+  id: "contact",
+  kind: "contact",
+  x: CONSOLE[0],
+  z: CONSOLE[1],
+  r: 62,
+  label: "人工接管 / HUMAN-IN-THE-LOOP",
+  title: "呼叫图纸主人",
+  body: "聊工程落地、聊培训，或者就是路过打个招呼。邮件我都会回。",
+  meta: "shizifan@gmail.com",
+  link: "mailto:shizifan@gmail.com",
+  linkText: "发邮件 ✉",
+  hue: "#d94f3d",
+  no: "HIL",
+  hand: "这是全图唯一的红",
+};
+
+const aboutPoi: Poi = {
+  id: "about",
+  kind: "about",
+  x: TITLE_BLOCK[0] + 122,
+  z: TITLE_BLOCK[1] + 48,
+  r: 70,
+  label: "图签 / TITLE BLOCK",
+  title: "石子凡 · AI 架构师",
+  body: "2012 年入行，从大数据平台一路做到智能体系统。图上跑的东西都是真的：右边六台装置全部可以点进去用，下面四条主干在客户的生产环境里跑着。",
+  tags: ["2012—2016 大数据平台", "2016—2018 AI 中台", "2018—2025 数字化运营", "2025— Agent 平台"],
+  meta: "REV 2026.07 · 1:1 运行中",
+  no: "石",
+  hand: "相信未来，笃行当下",
+  link: "/classic",
+  linkText: "查看简历版 →",
+};
+
+export const orchPois: Poi[] = [
+  ...productPois,
+  skillsPoi,
+  ...enterprisePois,
+  ...thesisPois,
+  ...postPois,
+  ...hubPois,
+  contactPoi,
+  aboutPoi,
+];
+
+/* ────────────────────────── 分区（toast + 小地图） ────────────────────────── */
+
+export const orchDistricts: District[] = [
+  { id: "spawn", name: "任务入口", en: "INBOX", x: INBOX[0], z: INBOX[1], r: 95 },
+  { id: "perceive", name: "感知区", en: "PERCEIVE", x: 330, z: 330, r: 165 },
+  { id: "plan", name: "规划区", en: "PLAN", x: 800, z: 215, r: 175 },
+  { id: "execute", name: "执行区", en: "EXECUTE", x: 1010, z: 690, r: 165 },
+  { id: "memory", name: "记忆区", en: "MEMORY", x: 330, z: 690, r: 165 },
+  { id: "devs", name: "部署坞", en: "SHIPPED ×6", x: 1250, z: 440, r: 165 },
+  { id: "trunks", name: "生产主干", en: "PRODUCTION", x: 780, z: 872, r: 125 },
+  { id: "archives", name: "档案角", en: "ARCHIVE", x: 282, z: 868, r: 105 },
+  { id: "console", name: "接管台", en: "SAY HELLO", x: CONSOLE[0], z: CONSOLE[1], r: 85 },
+];

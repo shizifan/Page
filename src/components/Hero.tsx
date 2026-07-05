@@ -66,7 +66,7 @@ export function Hero() {
               <div className="flex flex-wrap items-center gap-4">
                 <a
                   href="#products"
-                  className="mono text-sm bg-accent text-black font-medium px-6 py-3 hover:brightness-110 transition-all duration-200"
+                  className="mono text-sm bg-accent text-white font-medium px-6 py-3 hover:brightness-110 transition-all duration-200"
                 >
                   查看产品 ↓
                 </a>

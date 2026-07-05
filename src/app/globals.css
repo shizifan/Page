@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0d10;
-  --bg-raise: #10151a;
-  --bg-raise-2: #151c23;
-  --line: rgba(230, 238, 245, 0.09);
-  --line-strong: rgba(230, 238, 245, 0.18);
-  --text: #e8edf2;
-  --text-dim: #97a4b1;
-  --text-faint: #59656f;
-  --accent: #ffb224;
-  --accent-dim: rgba(255, 178, 36, 0.14);
-  --ok: #34d97b;
+  --bg: #f7f3ea;
+  --bg-raise: #faf6ea;
+  --bg-raise-2: #ffffff;
+  --line: rgba(35, 43, 54, 0.14);
+  --line-strong: rgba(35, 43, 54, 0.28);
+  --text: #232b36;
+  --text-dim: #4c5665;
+  --text-faint: #8b93a0;
+  --accent: #b45309;
+  --accent-dim: rgba(180, 83, 9, 0.12);
+  --ok: #0f8a4d;
 }
 
 @theme inline {
@@ -26,8 +26,24 @@
   --color-accent: var(--accent);
   --color-ok: var(--ok);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --font-sans: var(--font-grotesk);
   --font-mono: var(--font-jbmono);
+}
+
+/* 3D 世界页的浅色主题 —— 只在 .theme-paper 作用域内生效 */
+.theme-paper {
+  --bg: #f1ebdd;
+  --bg-raise: #faf6ea;
+  --bg-raise-2: #ffffff;
+  --line: rgba(35, 43, 54, 0.14);
+  --line-strong: rgba(35, 43, 54, 0.28);
+  --text: #232b36;
+  --text-dim: #4c5665;
+  --text-faint: #8b93a0;
+  --accent: #b45309;
+  --accent-dim: rgba(180, 83, 9, 0.12);
+  --ok: #0f8a4d;
 }
 
 html {
@@ -86,12 +102,12 @@ body {
   height: 7px;
   border-radius: 9999px;
   background: var(--ok);
-  box-shadow: 0 0 0 3px rgba(52, 217, 123, 0.15);
+  box-shadow: 0 0 0 3px rgba(15, 138, 77, 0.18);
   animation: pulse 2.4s ease-in-out infinite;
 }
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(52, 217, 123, 0.15); }
-  50% { box-shadow: 0 0 0 6px rgba(52, 217, 123, 0.05); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(15, 138, 77, 0.18); }
+  50% { box-shadow: 0 0 0 6px rgba(15, 138, 77, 0.06); }
 }
 
 /* Panel — bordered raise surface */
@@ -122,19 +138,22 @@ body {
   background: transparent;
 }
 
-/* Big metric number */
+/* Big metric number — 数字统一亮橙，单位小一号收灰 */
 .metric {
   font-family: var(--font-jbmono), monospace;
-  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
-  font-weight: 600;
+  font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
-  color: var(--text);
+  color: var(--accent);
   font-feature-settings: "tnum";
 }
 .metric em {
   font-style: normal;
-  color: var(--accent);
+  color: var(--text-dim);
+  font-size: 0.55em;
+  font-weight: 600;
+  margin-left: 0.18em;
 }
 
 /* Accent link with arrow */
@@ -148,13 +167,13 @@ body {
 
 /* Selection */
 ::selection {
-  background: rgba(255, 178, 36, 0.28);
-  color: #fff;
+  background: rgba(180, 83, 9, 0.22);
+  color: #1a212b;
 }
 
 /* Sticky nav scrolled state */
 .nav-scrolled {
-  background: rgba(10, 13, 16, 0.82);
+  background: rgba(244, 239, 227, 0.85);
   backdrop-filter: blur(14px) saturate(1.2);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border-bottom: 1px solid var(--line);
@@ -190,6 +209,46 @@ body {
   }
 }
 
+/* 3D 世界 POI 卡片入场 */
+@keyframes hud-card-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.hud-card {
+  animation: hud-card-in 0.35s cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+/* 分区提示：进入-停留-淡出，纯 CSS 完成 */
+@keyframes hud-toast-cycle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  10%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -4px);
+  }
+}
+.hud-toast {
+  animation: hud-toast-cycle 2.8s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-card {
+    animation: none;
+  }
+}
+
 /* Anchor offset for sticky nav */
 section[id] {
   scroll-margin-top: 76px;
@@ -203,7 +262,7 @@ section[id] {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #232c34;
+  background: #cdc5b2;
   border: 3px solid var(--bg);
   border-radius: 8px;
 }

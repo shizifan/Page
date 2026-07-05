@@ -20,16 +20,14 @@ export function About() {
     <section id="metrics" className="border-b border-line">
       {/* Metrics strip */}
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 border-x border-line divide-x divide-y lg:divide-y-0 divide-[rgba(230,238,245,0.09)]">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--line-strong)] border border-line-strong">
           {metrics.map((m, i) => (
-            <Reveal key={m.label} delay={i * 70} className="p-6 md:p-8">
+            <Reveal key={m.label} delay={i * 70} className="bg-raise p-6 md:p-8">
               <div className="metric">
                 {m.value}
                 <em>{m.unit}</em>
               </div>
-              <p className="mono text-[11px] tracking-wider text-faint mt-3">
-                {m.label}
-              </p>
+              <p className="text-[13px] text-dim mt-3">{m.label}</p>
             </Reveal>
           ))}
         </div>

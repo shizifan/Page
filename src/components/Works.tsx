@@ -12,7 +12,7 @@ export function Works() {
           note="六个已上线、可点开试用的产品。全部独立完成——产品、开发、部署、运维。"
         />
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-px bg-[rgba(230,238,245,0.09)] border border-line">
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-px bg-[var(--line)] border border-line">
           {works.map((w, i) => {
             const domain = w.link?.replace("https://", "") ?? "";
             return (

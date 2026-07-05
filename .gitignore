@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 设计稿导出存档（Claude Design 导出，仅本地参考，不进产品仓库）
+/design/
+/designV2/
