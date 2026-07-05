@@ -667,7 +667,7 @@ export default function OrchWorld() {
 
   return (
     <div className="theme-paper fixed inset-0 overflow-hidden bg-bg text-text select-none">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       <Hud
         desc={
           <>
