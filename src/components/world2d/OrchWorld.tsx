@@ -669,10 +669,6 @@ export default function OrchWorld() {
     <div className="theme-paper fixed inset-0 overflow-hidden bg-bg text-text select-none">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
       <Hud
-        alts={[
-          { href: "/pixel", label: "像素版" },
-          { href: "/3d", label: "3D 版" },
-        ]}
         desc={
           <>
             这是一张<span className="text-text">正在运行的智能体系统图</span>
