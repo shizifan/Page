@@ -511,7 +511,7 @@ export function drawTickerV2(g, cx, cy, t) {
     g.save(); g.translate(lx, ly); g.scale(1, lry / lrx); circ(g, 0, 0, lrx, C.inkMid, 0.9, 0.8); g.restore();
   });
   arc(g, 29, 26, 12, 3.34, 6.1, C.ink, 1.1);
-  devPlate(g, -4, 30, "行情手记 02", 84);
+  devPlate(g, -4, 30, "行情手记 01", 84); /* [v2.1] 龙虾下线后顺号 */
   txt(g, "ARCHIVE · 纸带小山", -4, 54, { size: 6.5, c: C.pencil, f: F_MONO });
   g.restore();
 }
@@ -538,7 +538,7 @@ export function drawOrreryV2(g, cx, cy, t) {
   disc(g, tx, ty, 3.4, C.gold); circ(g, tx, ty, 3.4, C.ink, 0.9); /* [v2.1] 粉只属于松果 */
   const am = t * 1.2; disc(g, tx + Math.cos(am) * 6, ty + Math.sin(am) * 6, 1.4, C.ink);
   circ(g, tx, ty, 6, C.grid, 0.7);
-  devPlate(g, 0, 34, "三体讲义 03", 84);
+  devPlate(g, 0, 34, "三体讲义 02", 84); /* [v2.1] 龙虾下线后顺号 */
   txt(g, "ARCHIVE · 互绕不休", 0, 58, { size: 6.5, c: C.pencil, f: F_MONO });
   g.restore();
 }

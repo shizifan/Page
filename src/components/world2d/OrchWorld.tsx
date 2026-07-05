@@ -37,7 +37,6 @@ import {
   drawCapsule,
   drawCompass,
   drawConsole,
-  drawDestMark,
   drawDevTrayV2,
   drawDim,
   drawDraftSheet,
@@ -45,7 +44,6 @@ import {
   drawHubV2,
   drawIncubatorV2,
   drawInspectV2,
-  drawLobsterV2,
   drawLuggageTag,
   drawMemCard,
   drawMinimapV2,
@@ -569,11 +567,12 @@ export default function OrchWorld() {
       drawDraftSheet(g, CARRIERS.draft.x, CARRIERS.draft.y, 6, t);
       handNote(g, CARRIERS.draft.x, CARRIERS.draft.y + 60, "还没想透的，就圈起来", -2, 11);
 
-      /* 记忆档案三件 */
-      drawLobsterV2(g, ARCHIVES[0][0], ARCHIVES[0][1], t);
-      drawTickerV2(g, ARCHIVES[1][0], ARCHIVES[1][1], t);
-      drawOrreryV2(g, ARCHIVES[2][0], ARCHIVES[2][1], t);
-      txt(g, "记忆档案 ×3 · 每一台都是一段长文", 282, 928, { size: 9, c: C.inkMid });
+      /* 记忆档案（装置与文章绑定，两台） */
+      for (const a of ARCHIVES) {
+        if (a.device === "ticker") drawTickerV2(g, a.x, a.z, t);
+        else drawOrreryV2(g, a.x, a.z, t);
+      }
+      txt(g, "记忆档案 ×2 · 每一台都是一段长文", 324, 924, { size: 9, c: C.inkMid });
 
       /* 接管台 + 图面家具 */
       drawConsole(g, CONSOLE[0], CONSOLE[1], t);
@@ -597,17 +596,10 @@ export default function OrchWorld() {
       }
       if (tail.length > 2) drawTrail(g, tail, t, "rail");
 
-      /* 鼠标目的地：铅笔叉，到达后被橡皮擦掉 */
-      if (mouse.active) {
-        let ph = 0.25;
-        if (mouse.arriveAt !== null) {
-          ph = 0.55 + Math.min(1, (t - mouse.arriveAt) / 0.6) * 0.45;
-          if (ph >= 1) {
-            mouse.active = false;
-            mouse.arriveAt = null;
-          }
-        }
-        if (mouse.active) drawDestMark(g, mouse.tx, mouse.tz, ph, t);
+      /* 鼠标点击目的地：不再画光标标记，到达后静默清除 */
+      if (mouse.active && mouse.arriveAt !== null && t - mouse.arriveAt > 0.15) {
+        mouse.active = false;
+        mouse.arriveAt = null;
       }
 
       /* 靠近反馈：目标被「注视」 + 批注显影 */

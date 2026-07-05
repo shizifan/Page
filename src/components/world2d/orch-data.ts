@@ -53,10 +53,21 @@ export const CARRIERS = {
   draft: { x: 455, y: 468 }, // 06 草稿纸 + 修订云线
 };
 
-export const ARCHIVES: Array<[number, number]> = [
-  [165, 858], // 机械龙虾 · 观察日志
-  [290, 852], // 行情纸带机 · 行情手记
-  [402, 848], // 三球轨道仪 · 三体讲义
+/**
+ * 记忆档案 —— 每台装置绑定一篇长文（postIdx 指向 works.ts 的 posts）。
+ * 装置形态与文章内容天然对应：期货行情→纸带机，三体互绕→轨道仪。
+ * 龙虾纪元那篇已下线。
+ */
+export const ARCHIVES: Array<{
+  postIdx: number;
+  device: "ticker" | "orrery";
+  x: number;
+  z: number;
+  meta: string;
+  hand: string;
+}> = [
+  { postIdx: 1, device: "ticker", x: 250, z: 856, meta: "行情手记 · 纸带小山", hand: "行情从未停" },
+  { postIdx: 0, device: "orrery", x: 398, z: 850, meta: "三体讲义 · 互绕不休", hand: "谁也算不准" },
 ];
 
 export const CONSOLE: [number, number] = [128, 470];
@@ -129,7 +140,7 @@ const DEV_HANDS = [
   "视线尽头有条船",
 ];
 
-const productPois: Poi[] = DEV_SLOTS.map((slot, i) => {
+const productPois: Poi[] = DEV_SLOTS.map((slot) => {
   const w = works[slot.workIdx];
   return {
     id: `product-${w.id}`,
@@ -150,20 +161,59 @@ const productPois: Poi[] = DEV_SLOTS.map((slot, i) => {
   };
 });
 
-const skillsPoi: Poi = {
-  id: "skills",
-  kind: "skills",
-  x: TOOL_WALL.x,
-  z: TOOL_WALL.y,
-  r: 105,
-  label: "工具墙 / TOOLBOARD",
-  title: "九件吃饭的家伙",
-  body: "越常用的越亮，把手都磨出包浆了。有一件不在墙上——被今天的任务借去修调度那条线了。从 Spark 到 Agent 工程，这面墙攒了十五年。",
-  tags: skills,
+/**
+ * 九件工具 —— 工具墙上每一件各是一个独立 POI（不再一张卡讲完九件）。
+ * 工具在墙上等距排列：世界 x = TOOL_WALL.x - 216 + i·54。
+ */
+export const TOOL_X0 = TOOL_WALL.x - 216;
+export const TOOL_STEP = 54;
+const TOOL_LABELS = [
+  "齿轮组",
+  "漏斗滤纸",
+  "游标卡尺",
+  "道岔扳手",
+  "卡片抽屉",
+  "传送带",
+  "水管阀门",
+  "脚手架",
+  "扩音喇叭",
+];
+const TOOL_BODIES = [
+  "搭 agent 的骨架：状态机、工具编排、重试兜底。齿轮咬得准，整台机器才转得动。",
+  "给模型喂什么、喂多少、按什么顺序。上下文是个漏斗，滤掉噪声才留得下信号。",
+  "先有测试集，再谈准确率。没量过的改进，都是错觉。",
+  "多个 agent 分工，靠图把控制流扳到对的岔道上。这把扳手今天被借去修调度那条线了。",
+  "把资料切好、存好、取得准。检索不是搜索，是把对的那一张卡片抽出来。",
+  "十五年的老本行。TB 级数据在传送带上跑批，喂饱上面那些新家伙。",
+  "后端管道：接口、流量、异步。阀门拧对，数据才不漏不堵。",
+  "前端搭台子。用户点得到、看得懂，agent 才算真落了地。",
+  "把这一套讲给一线听。单场数千人——让 AI 真被用起来，比做出来更难。",
+];
+const TOOL_HANDS = [
+  "先把骨架搭稳",
+  "少喂，喂对",
+  "量了才算数",
+  "岔道扳对就不打架",
+  "抽对那张卡",
+  "老本行，跑批",
+  "接口拧紧",
+  "台子搭给人用",
+  "讲到能用起来",
+];
+
+const skillPois: Poi[] = skills.map((s, i) => ({
+  id: `skill-${i}`,
+  kind: "skills" as const,
+  x: TOOL_X0 + i * TOOL_STEP,
+  z: TOOL_WALL.y - 5,
+  r: 24,
+  label: `工具 ${String(i + 1).padStart(2, "0")} / TOOLBOARD`,
+  title: `${TOOL_LABELS[i]} · ${s}`,
+  body: TOOL_BODIES[i],
   meta: "磨损度 = 被调用的深度",
-  no: "TB",
-  hand: "顺手的都磨亮了",
-};
+  no: String(i + 1).padStart(2, "0"),
+  hand: TOOL_HANDS[i],
+}));
 
 const TRUNK_HANDS = ["报告是一页页吐出来的", "先对齐口径再回答", "错峰，都过得去", "蓝图得先画对"];
 
@@ -207,23 +257,23 @@ const thesisPois: Poi[] = theses.map((t, i) => ({
   hand: THESIS_HANDS[i],
 }));
 
-const POST_HANDS = ["书读完了，它才站上去", "行情从未停", "谁也算不准"];
-const POST_METAS = ["观察日志 01 · 龙虾与书", "行情手记 02 · 纸带小山", "三体讲义 03 · 互绕不休"];
-
-const postPois: Poi[] = posts.map((p, i) => ({
-  id: `post-${i}`,
-  kind: "post" as const,
-  x: ARCHIVES[i][0],
-  z: ARCHIVES[i][1] - 20,
-  r: 48,
-  label: `记忆档案 / ARCHIVE`,
-  title: p.title,
-  body: p.summary,
-  meta: POST_METAS[i],
-  hue: "#7fa7c6",
-  no: `T${i + 1}`,
-  hand: POST_HANDS[i],
-}));
+const postPois: Poi[] = ARCHIVES.map((a, i) => {
+  const p = posts[a.postIdx];
+  return {
+    id: `post-${a.postIdx}`,
+    kind: "post" as const,
+    x: a.x,
+    z: a.z - 20,
+    r: 48,
+    label: `记忆档案 / ARCHIVE`,
+    title: p.title,
+    body: p.summary,
+    meta: a.meta,
+    hue: "#7fa7c6",
+    no: `T${i + 1}`,
+    hand: a.hand,
+  };
+});
 
 const hubPois: Poi[] = HUBS.map(([x, y, k]) => ({
   id: `hub-${k}`,
@@ -275,7 +325,7 @@ const aboutPoi: Poi = {
 
 export const orchPois: Poi[] = [
   ...productPois,
-  skillsPoi,
+  ...skillPois,
   ...enterprisePois,
   ...thesisPois,
   ...postPois,
@@ -294,6 +344,6 @@ export const orchDistricts: District[] = [
   { id: "memory", name: "记忆区", en: "MEMORY", x: 330, z: 690, r: 165 },
   { id: "devs", name: "部署坞", en: "SHIPPED ×6", x: 1250, z: 440, r: 165 },
   { id: "trunks", name: "生产主干", en: "PRODUCTION", x: 780, z: 872, r: 125 },
-  { id: "archives", name: "档案角", en: "ARCHIVE", x: 282, z: 868, r: 105 },
+  { id: "archives", name: "档案角", en: "ARCHIVE", x: 324, z: 862, r: 105 },
   { id: "console", name: "接管台", en: "SAY HELLO", x: CONSOLE[0], z: CONSOLE[1], r: 85 },
 ];
