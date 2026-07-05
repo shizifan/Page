@@ -66,8 +66,8 @@ export const ARCHIVES: Array<{
   meta: string;
   hand: string;
 }> = [
-  { postIdx: 1, device: "ticker", x: 250, z: 856, meta: "行情手记 · 纸带小山", hand: "行情从未停" },
-  { postIdx: 0, device: "orrery", x: 398, z: 850, meta: "三体讲义 · 互绕不休", hand: "谁也算不准" },
+  { postIdx: 0, device: "orrery", x: 250, z: 852, meta: "三体讲义 · 互绕不休", hand: "谁也算不准" },
+  { postIdx: 1, device: "ticker", x: 398, z: 856, meta: "行情手记 · 纸带小山", hand: "行情从未停" },
 ];
 
 export const CONSOLE: [number, number] = [128, 470];
