@@ -101,7 +101,7 @@ function IntroOverlay({
           相信未来 / 笃行当下
         </p>
 
-        <p className="text-dim text-sm leading-relaxed mb-8">
+        <p className="text-text text-lg md:text-xl font-medium leading-relaxed mb-8">
           {desc ?? (
             <>
               这是我的<span className="text-text">能力与产品地图</span>
