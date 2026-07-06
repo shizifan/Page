@@ -46,7 +46,7 @@ export const TRUNK_END_OFF = [0, -14, 8, -6];
 /** 六条观点载体（位置即语义） */
 export const CARRIERS = {
   luggage: { x: BUS_X, y: 452 }, // 01 行李牌 · 拴在部署总线
-  enamel: { x: 498, y: 845 }, // 02 搪瓷牌 · 钉在生产主干旁
+  enamel: { x: 556, y: 848 }, // 02 搪瓷牌 · 钉在生产主干旁（避开档案架）
   stencil: { x: 668, y: 800, text: "先问清楚，再动手" }, // 03 丝印在集流管上
   note4: { x: 935, y: 512 }, // 04 图钉便签
   note5: { x: 1105, y: 172 }, // 05 胶带便签
@@ -54,21 +54,31 @@ export const CARRIERS = {
 };
 
 /**
- * 记忆档案 —— 每台装置绑定一篇长文（postIdx 指向 works.ts 的 posts）。
- * 装置形态与文章内容天然对应：期货行情→纸带机，三体互绕→轨道仪。
- * 龙虾纪元那篇已下线。
+ * 记忆档案架 —— 8 篇长文一排卷轴，每卷一枚主题图章。
+ * 顺序与 works.ts 的 posts 一一对应。
  */
-export const ARCHIVES: Array<{
-  postIdx: number;
-  device: "ticker" | "orrery";
-  x: number;
-  z: number;
-  meta: string;
-  hand: string;
-}> = [
-  { postIdx: 0, device: "orrery", x: 250, z: 852, meta: "三体讲义 · 互绕不休", hand: "谁也算不准" },
-  { postIdx: 1, device: "ticker", x: 398, z: 856, meta: "行情手记 · 纸带小山", hand: "行情从未停" },
+export const RACK = { cx: 305, y: 858, step: 52 };
+export const archiveX = (i: number) => RACK.cx + (i - 3.5) * RACK.step;
+
+const ARCHIVE_GLYPHS = ["orbit", "brain2", "graph", "loop", "badge", "compass", "gauge", "vmodel"];
+const ARCHIVE_CAPS = ["三体", "数据平台", "编程平台", "流利度", "数字员工", "AI 教育", "AI 估工时", "估 AI 工时"];
+const ARCHIVE_HANDS = [
+  "没有稳定轨道",
+  "理性和感性各归各",
+  "对着人月神话四道题",
+  "别当打字机使",
+  "它得先认识你",
+  "先问值不值得解",
+  "人天是这时代的马力",
+  "验证只走了一半",
 ];
+
+export const ARCHIVE_ITEMS = posts.map((p, i) => ({
+  glyph: ARCHIVE_GLYPHS[i],
+  cap: ARCHIVE_CAPS[i],
+  date: p.date,
+  x: archiveX(i),
+}));
 
 export const CONSOLE: [number, number] = [128, 470];
 export const INBOX: [number, number] = [670, 510];
@@ -257,23 +267,20 @@ const thesisPois: Poi[] = theses.map((t, i) => ({
   hand: THESIS_HANDS[i],
 }));
 
-const postPois: Poi[] = ARCHIVES.map((a, i) => {
-  const p = posts[a.postIdx];
-  return {
-    id: `post-${a.postIdx}`,
-    kind: "post" as const,
-    x: a.x,
-    z: a.z - 20,
-    r: 48,
-    label: `记忆档案 / ARCHIVE`,
-    title: p.title,
-    body: p.summary,
-    meta: a.meta,
-    hue: "#7fa7c6",
-    no: `T${i + 1}`,
-    hand: a.hand,
-  };
-});
+const postPois: Poi[] = posts.map((p, i) => ({
+  id: `post-${i}`,
+  kind: "post" as const,
+  x: archiveX(i),
+  z: RACK.y,
+  r: 24,
+  label: `记忆档案 / ARCHIVE`,
+  title: p.title,
+  body: p.summary,
+  meta: `${p.date} · 长文`,
+  hue: "#7fa7c6",
+  no: `T${i + 1}`,
+  hand: ARCHIVE_HANDS[i],
+}));
 
 const hubPois: Poi[] = HUBS.map(([x, y, k]) => ({
   id: `hub-${k}`,
@@ -344,6 +351,6 @@ export const orchDistricts: District[] = [
   { id: "memory", name: "记忆区", en: "MEMORY", x: 330, z: 690, r: 165 },
   { id: "devs", name: "部署坞", en: "SHIPPED ×6", x: 1250, z: 440, r: 165 },
   { id: "trunks", name: "生产主干", en: "PRODUCTION", x: 780, z: 872, r: 125 },
-  { id: "archives", name: "档案角", en: "ARCHIVE", x: 324, z: 862, r: 105 },
+  { id: "archives", name: "档案架", en: "ARCHIVE ×8", x: RACK.cx, z: RACK.y - 8, r: 210 },
   { id: "console", name: "接管台", en: "SAY HELLO", x: CONSOLE[0], z: CONSOLE[1], r: 85 },
 ];

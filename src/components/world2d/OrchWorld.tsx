@@ -5,7 +5,8 @@ import { attachKeyboard, input } from "@/components/world/controls";
 import { carState, resetCar, setSpawn, useWorldStore } from "@/components/world/store";
 import { Hud } from "@/components/world/Hud";
 import {
-  ARCHIVES,
+  ARCHIVE_ITEMS,
+  RACK,
   BOARD,
   BUS_X,
   CARRIERS,
@@ -48,13 +49,13 @@ import {
   drawMemCard,
   drawMinimapV2,
   drawNote,
-  drawOrreryV2,
+  drawArchiveRackBoard,
+  drawArticleScroll,
   drawPipeStencil,
   drawQAV2,
   drawRhythmV2,
   drawShiverNote,
   drawStillV2,
-  drawTickerV2,
   drawTitleBlock,
   drawTokenStage,
   drawTokenTiny,
@@ -567,12 +568,12 @@ export default function OrchWorld() {
       drawDraftSheet(g, CARRIERS.draft.x, CARRIERS.draft.y, 6, t);
       handNote(g, CARRIERS.draft.x, CARRIERS.draft.y + 60, "还没想透的，就圈起来", -2, 11);
 
-      /* 记忆档案（装置与文章绑定，两台） */
-      for (const a of ARCHIVES) {
-        if (a.device === "ticker") drawTickerV2(g, a.x, a.z, t);
-        else drawOrreryV2(g, a.x, a.z, t);
+      /* 记忆档案架（8 篇长文，各一枚图章卷轴） */
+      drawArchiveRackBoard(g, RACK.cx, RACK.y, 7 * RACK.step);
+      for (let i = 0; i < ARCHIVE_ITEMS.length; i++) {
+        const it = ARCHIVE_ITEMS[i];
+        drawArticleScroll(g, it.x, RACK.y, it.glyph, it.cap, it.date, t);
       }
-      txt(g, "记忆档案 ×2 · 每一台都是一段长文", 324, 924, { size: 9, c: C.inkMid });
 
       /* 接管台 + 图面家具 */
       drawConsole(g, CONSOLE[0], CONSOLE[1], t);
@@ -663,9 +664,8 @@ export default function OrchWorld() {
       <Hud
         desc={
           <>
-            这是一张<span className="text-text">正在运行的智能体系统图</span>
-            ，你是一枚刚派发进来的任务胶囊。方向键直接走，
-            <span className="text-text">鼠标点哪去哪</span>；贴着描金管线走会自动吸轨。
+            这是我的<span className="text-text">智能体能力地图</span>
+            ，请控制任务胶囊，看看我能为你做些什么。
           </>
         }
         hint="WASD / 鼠标 驾驶 · SHIFT 加速 · R 复位 · 滚轮 缩放"

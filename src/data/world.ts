@@ -288,7 +288,9 @@ const POST_POS: Array<[number, number, number]> = [
   [-104, -52, -0.5],
 ];
 
-export const postSlabs: PostSlab[] = posts.map((p, i) => {
+// 像素/3D 世界只用前 3 篇长文摆石碑（POST_POS 定义了 3 个位置）；
+// 系统图主页用 orch-data 的档案架展示全部 8 篇。
+export const postSlabs: PostSlab[] = posts.slice(0, POST_POS.length).map((p, i) => {
   const [x, z, rotY] = POST_POS[i];
   return {
     x,

@@ -878,6 +878,79 @@ export function drawShiverNote(g, x, y, no, t, prox = 0) {
   g.restore();
 }
 
+/* ════════ B5' · 记忆档案架（8 篇长文，每篇一枚主题图章卷轴）════════
+   替换旧的两台独立机器：改成一排卷轴，每篇一枚小图章 + 日期铭牌，各自成 POI。 */
+
+/** 主题图章（约 ±8px，线稿一枚）。type 对应文章内容。 */
+export function drawArchiveGlyph(g, type, t) {
+  const I = C.ink, M = C.inkMid, A = C.amber, B = C.blue;
+  if (type === "orbit") {                 // 三体：三球互绕
+    disc(g, 0, 0, 1.6, A);
+    circ(g, 0, 0, 6.5, C.grid, 0.7);
+    for (let i = 0; i < 3; i++) {
+      const a = t * 0.9 + i * 2.094;
+      disc(g, Math.cos(a) * 6.5, Math.sin(a) * 6.5, 1.5, i === 0 ? A : i === 1 ? B : M);
+    }
+  } else if (type === "brain2") {          // 数据平台：方脑(逻辑) + 圆脑(语义)
+    sRR(g, -8, -5, 6, 10, 1.2, I, 1.2);
+    for (let i = 0; i < 2; i++) sline(g, -7, -2 + i * 3, -3, -2 + i * 3, M, 0.8, i);
+    disc(g, 4, 0, 5, C.white); circ(g, 4, 0, 5, I, 1.2);
+    arc(g, 4, 0, 2.6, 0.4, 2.6, M, 0.8);
+    sline(g, -2, 0, 0, 0, A, 1.2, 3);
+  } else if (type === "graph") {           // 编程平台：代码图谱
+    const n = [[-6, -4], [5, -5], [6, 4], [-5, 5], [0, 0]];
+    for (const [a, b] of [[4, 0], [4, 1], [4, 2], [4, 3], [0, 1]])
+      sline(g, n[a][0], n[a][1], n[b][0], n[b][1], M, 0.8, a + b);
+    for (const [x, y] of n) { disc(g, x, y, 1.7, C.white); circ(g, x, y, 1.7, I, 1); }
+    disc(g, 0, 0, 1.7, A);
+  } else if (type === "loop") {            // 流利度：往返对话环
+    arc(g, 0, 0, 6, -2.5, 0.8, M, 1.4);
+    arrowHead(g, Math.cos(0.8) * 6, Math.sin(0.8) * 6, 0.8 + 1.57, M, 4);
+    arc(g, 0, 0, 6, 0.65, 3.95, A, 1.4);
+    arrowHead(g, Math.cos(3.95) * 6, Math.sin(3.95) * 6, 3.95 + 1.57, A, 4);
+  } else if (type === "badge") {           // 数字员工：工牌
+    sline(g, 0, -8.5, 0, -6.5, I, 1, 2);
+    sRR(g, -5, -6.5, 10, 13, 1.5, I, 1.3); fRR(g, -5, -6.5, 10, 3.5, 1.5, A, 0.9);
+    disc(g, 0, -0.5, 2.2, B); sline(g, -3, 4, 3, 4, M, 0.9, 1);
+  } else if (type === "compass") {         // AI 教育：罗盘（追真问题的方向）
+    circ(g, 0, 1, 6.5, I, 1.3); circ(g, 0, 1, 4.5, C.grid, 0.8);
+    g.save(); g.translate(0, 1); g.rotate(Math.sin(t * 0.6) * 0.16);
+    poly(g, [[0, -5], [1.7, 1.6], [0, 0], [-1.7, 1.6]], A, 1); g.restore();
+    txt(g, "N", 0, -7.5, { size: 5, f: F_MONO, c: I, w: 700 });
+  } else if (type === "gauge") {           // AI 估工时：马力表盘
+    arc(g, 0, 3, 6.5, 3.34, 6.08, I, 1.3);
+    for (let i = 0; i <= 4; i++) { const a = 3.34 + i * 0.685; sline(g, Math.cos(a) * 5, 3 + Math.sin(a) * 5, Math.cos(a) * 6.5, 3 + Math.sin(a) * 6.5, M, 0.7, i); }
+    const na = 3.5 + (0.7 + Math.sin(t * 3) * 0.05) * 2.3;
+    poly(g, [[0, 3], [Math.cos(na) * 5, 3 + Math.sin(na) * 5]], A, 1.4); disc(g, 0, 3, 1.4, I);
+  } else if (type === "vmodel") {          // 估 AI 工时：V 模型（左生成右验证）
+    poly(g, [[-6, -5], [0, 5], [6, -5]], I, 1.5);
+    disc(g, -6, -5, 1.9, A); circ(g, -6, -5, 1.9, I, 0.9);
+    disc(g, 6, -5, 1.9, B); circ(g, 6, -5, 1.9, I, 0.9);
+  }
+}
+
+/** 一枚档案卷轴：站立小卷 + 图章 + 下方日期铭牌。 */
+export function drawArticleScroll(g, x, y, glyph, cap, date, t) {
+  g.save(); g.translate(x, y);
+  fRR(g, -11, -28, 22, 32, 3, C.shadow, 0.55);
+  fRR(g, -13, -30, 22, 32, 3, C.white); sRR(g, -13, -30, 22, 32, 3, C.ink, 1.3);
+  circ(g, -8, -30, 2.6, C.ink, 1.1); circ(g, 8 - 4, -30, 2.6, C.ink, 1.1);
+  g.save(); g.translate(-2, -15); drawArchiveGlyph(g, glyph, t); g.restore();
+  g.restore();
+  // 铭牌
+  fRR(g, x - 25, y + 6, 50, 16, 2, C.white); sRR(g, x - 25, y + 6, 50, 16, 2, C.inkMid, 0.8);
+  txt(g, cap, x, y + 11.5, { size: 8, w: 700 });
+  txt(g, (date || "").slice(2), x, y + 18.5, { size: 5.5, c: C.amber, f: F_MONO });
+}
+
+/** 档案架背板 + 搁板线 + 标题。 */
+export function drawArchiveRackBoard(g, cx, y, w) {
+  fRR(g, cx - w / 2 - 20, y - 44, w + 40, 74, 5, C.white, 0.45);
+  sRR(g, cx - w / 2 - 20, y - 44, w + 40, 74, 5, C.inkMid, 1);
+  txt(g, "记忆档案 · 长文 ×8 · 每卷都是一篇", cx, y - 37, { size: 8, c: C.amber, f: F_MONO });
+  sline(g, cx - w / 2 - 16, y + 6, cx + w / 2 + 16, y + 6, C.ink, 1.4, 1);
+}
+
 /* ══════════ drawMapV2 · 世界总装（1400×1000）══════════ */
 const RING = { x0: 330, y0: 330, x1: 1010, y1: 690 };
 const HUBS = [[330, 330, 0], [1010, 330, 1], [1010, 690, 2], [330, 690, 3]];
