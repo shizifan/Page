@@ -261,6 +261,15 @@ export default function OrchWorld() {
     };
     window.addEventListener("wheel", onWheel, { passive: true });
 
+    // 触屏旋转/微信视口变化后：fitZoom 变了，别停在比整图更小的缩放（会露出图板外空白）
+    const onResizeTouch = () => {
+      if (!isTouch) return;
+      if (zoomTarget < fitZoom) zoomTarget = fitZoom;
+      if (zoom < fitZoom) zoom = fitZoom;
+    };
+    window.addEventListener("resize", onResizeTouch);
+    window.addEventListener("orientationchange", onResizeTouch);
+
     /** 触屏相机：默认自由（拖动/双指控制），摇杆驾驶时改为跟随胶囊 */
     let camFree = isTouch;
     let prevPhase: string = useWorldStore.getState().phase;
@@ -796,6 +805,8 @@ export default function OrchWorld() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", onResizeTouch);
+      window.removeEventListener("orientationchange", onResizeTouch);
       window.removeEventListener("wheel", onWheel);
       if (isTouch) {
         canvas.removeEventListener("pointerdown", onTouchDown);

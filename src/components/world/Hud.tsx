@@ -87,12 +87,17 @@ function IntroOverlay({
   desc?: React.ReactNode;
 }) {
   const enter = useWorldStore((s) => s.enter);
+  // 手机（含微信浏览器）：点屏幕任意处进入地图；桌面维持点按钮
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
   return (
-    <div className="absolute inset-0 z-40 overflow-y-auto bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]">
+    <div
+      className="absolute inset-0 z-40 overflow-y-auto bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]"
+      onClick={touch ? enter : undefined}
+    >
       <div className="blueprint absolute inset-0 pointer-events-none" aria-hidden="true" />
       <div className="relative min-h-full flex items-center justify-center px-6 py-8">
-        <div className="max-w-xl w-full text-center">
-        <div className="mono text-xs text-faint tracking-widest flex items-center justify-center gap-3 mb-5 sm:mb-8">
+        <div className="intro-panel max-w-xl w-full text-center">
+        <div className="intro-status mono text-xs text-faint tracking-widest flex items-center justify-center gap-3 mb-5 sm:mb-8">
           <span className="dot-live" aria-hidden="true" />
           <span className="text-dim">WORLD ONLINE</span>
           <span aria-hidden="true">·</span>
@@ -102,14 +107,14 @@ function IntroOverlay({
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-3 sm:mb-4">
           石子凡
         </h1>
-        <p className="text-lg md:text-xl text-accent mb-2">
+        <p className="intro-sub text-lg md:text-xl text-accent mb-2">
           让 AI 为人创造价值
         </p>
-        <p className="mono text-xs text-faint tracking-[0.28em] mb-5 sm:mb-8">
+        <p className="intro-tag mono text-xs text-faint tracking-[0.28em] mb-5 sm:mb-8">
           相信未来 / 笃行当下
         </p>
 
-        <p className="text-text text-base sm:text-lg md:text-xl font-medium leading-relaxed mb-6 sm:mb-8">
+        <p className="intro-desc text-text text-base sm:text-lg md:text-xl font-medium leading-relaxed mb-6 sm:mb-8">
           {desc ?? (
             <>
               这是我的<span className="text-text">能力与产品地图</span>
@@ -120,7 +125,7 @@ function IntroOverlay({
         </p>
 
         {/* 操作说明 */}
-        <div className="flex items-center justify-center gap-8 mb-7 sm:mb-10">
+        <div className="intro-ctrls flex items-center justify-center gap-8 mb-7 sm:mb-10">
           {touch ? (
             <div className="mono text-xs text-dim tracking-wider leading-relaxed">
               双指缩放 · 拖动平移
@@ -155,6 +160,7 @@ function IntroOverlay({
           </button>
           <Link
             href="/classic"
+            onClick={stop}
             className="mono text-sm border border-line px-6 py-3.5 text-dim hover:text-accent hover:border-accent/50 transition-colors duration-200"
           >
             看简历版
@@ -163,6 +169,7 @@ function IntroOverlay({
             <Link
               key={a.href}
               href={a.href}
+              onClick={stop}
               className="mono text-sm border border-line px-6 py-3.5 text-dim hover:text-accent hover:border-accent/50 transition-colors duration-200"
             >
               {a.label}
@@ -170,8 +177,14 @@ function IntroOverlay({
           ))}
         </div>
 
-        <p className="mono text-[10px] text-faint tracking-wider mt-6 sm:mt-8">
-          {touch ? "点空白处收起卡片" : "随时按 R 复位"} · 设备不给力请走简历版
+        {touch && (
+          <p className="mono text-[11px] text-accent tracking-wider mt-4 hud-pulse">
+            — 轻触屏幕任意处进入 —
+          </p>
+        )}
+
+        <p className="intro-foot mono text-[10px] text-faint tracking-wider mt-6 sm:mt-8">
+          {touch ? "横屏体验更佳 · 点空白处收起卡片" : "随时按 R 复位"} · 设备不给力请走简历版
         </p>
         </div>
       </div>
@@ -393,7 +406,7 @@ function ZoomControl() {
   const btn =
     "pointer-events-auto w-11 h-11 flex items-center justify-center border border-line-strong bg-[rgba(250,246,234,0.85)] backdrop-blur-sm text-dim active:bg-accent/15 select-none touch-none";
   return (
-    <div className="absolute top-1/2 -translate-y-1/2 right-3 z-30 flex flex-col gap-2">
+    <div className="absolute top-1/2 -translate-y-1/2 left-3 z-30 flex flex-col gap-2">
       <button className={`${btn} text-xl leading-none`} onClick={() => (input.zoomStep = 1)} aria-label="放大">
         ＋
       </button>
@@ -483,7 +496,7 @@ function Joystick() {
 
   return (
     <div
-      className="absolute bottom-7 left-7 z-30 rounded-full border border-line-strong bg-[rgba(250,246,234,0.6)] backdrop-blur-sm flex items-center justify-center touch-none"
+      className="absolute bottom-7 right-7 z-30 rounded-full border border-line-strong bg-[rgba(250,246,234,0.6)] backdrop-blur-sm flex items-center justify-center touch-none"
       style={{ width: JOY_R * 2 + 40, height: JOY_R * 2 + 40 }}
       onPointerDown={onPointer}
       onPointerMove={onPointer}
