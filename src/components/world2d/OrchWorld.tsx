@@ -209,6 +209,7 @@ function stepCapsule(dt: number, driving: boolean, tNow: number): void {
 /* ────────────────────────── 主组件 ────────────────────────── */
 
 const ZOOMS = [0.75, 1, 1.5, 2];
+const MAX_ZOOM = 2.2; // 触屏双指缩放上限（够读清单个装置）
 const DEV_FNS = [drawStillV2, drawInspectV2, drawQAV2, drawIncubatorV2, drawRhythmV2, drawDevTrayV2];
 
 export default function OrchWorld() {
@@ -227,9 +228,17 @@ export default function OrchWorld() {
 
     const detachKb = attachKeyboard();
 
+    const isTouch =
+      typeof window !== "undefined" &&
+      (new URLSearchParams(window.location.search).has("touch") || // 调试：?touch=1 强制触屏路径
+        window.matchMedia?.("(pointer: coarse)").matches ||
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0);
+
     let W = 0;
     let H = 0;
     let dpr = 1;
+    let fitZoom = 0.3; // 让整张图板铺满屏幕的缩放（进场默认视图）
     const resize = () => {
       const r = canvas.parentElement!.getBoundingClientRect();
       W = Math.max(320, r.width | 0);
@@ -237,16 +246,24 @@ export default function OrchWorld() {
       dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = W * dpr;
       canvas.height = H * dpr;
+      fitZoom = Math.min(W / BOARD.w, H / BOARD.h) * 0.98;
     };
     resize();
     window.addEventListener("resize", resize);
 
     let zoomIdx = 1;
     let zoom = ZOOMS[zoomIdx];
+    let zoomTarget = zoom; // 缩放缓动目标：桌面走离散档位，触屏走连续双指
+    const clampTouchZoom = (z: number) => Math.max(fitZoom, Math.min(MAX_ZOOM, z));
     const onWheel = (e: WheelEvent) => {
       zoomIdx = Math.min(ZOOMS.length - 1, Math.max(0, zoomIdx - Math.sign(e.deltaY)));
+      zoomTarget = ZOOMS[zoomIdx];
     };
     window.addEventListener("wheel", onWheel, { passive: true });
+
+    /** 触屏相机：默认自由（拖动/双指控制），摇杆驾驶时改为跟随胶囊 */
+    let camFree = isTouch;
+    let prevPhase: string = useWorldStore.getState().phase;
 
     /* 鼠标 / 触点：单击设目的地，按住持续跟随 */
     const view = { offX: 0, offY: 0, zoom: 1 };
@@ -280,12 +297,101 @@ export default function OrchWorld() {
     const onPointerUp = () => {
       mouse.held = false;
     };
-    canvas.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-
     const cam = { x: INBOX[0], z: INBOX[1] };
+
+    /* ── 触屏：单指拖动平移 · 双指缩放 · 轻点选装置 ── */
+    const tps = new Map<number, { x: number; y: number }>();
+    let tapCand: { id: number; x: number; y: number; t: number } | null = null;
+    let panMoved = false;
+    let pinchDist = 0;
+    let pinchZoom0 = 1;
+    const clampCam = () => {
+      cam.x = Math.max(0, Math.min(BOARD.w, cam.x));
+      cam.z = Math.max(0, Math.min(BOARD.h, cam.z));
+    };
+    const onTouchDown = (e: PointerEvent) => {
+      if (useWorldStore.getState().phase !== "drive") return;
+      const r = canvas.getBoundingClientRect();
+      const pt = { x: e.clientX - r.left, y: e.clientY - r.top };
+      tps.set(e.pointerId, pt);
+      canvas.setPointerCapture?.(e.pointerId);
+      if (tps.size === 1) {
+        tapCand = { id: e.pointerId, x: pt.x, y: pt.y, t: performance.now() };
+        panMoved = false;
+      } else if (tps.size === 2) {
+        const [a, b] = [...tps.values()];
+        pinchDist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        pinchZoom0 = zoom;
+        tapCand = null;
+      }
+    };
+    const onTouchMove = (e: PointerEvent) => {
+      if (!tps.has(e.pointerId)) return;
+      const r = canvas.getBoundingClientRect();
+      const prev = tps.get(e.pointerId)!;
+      const nx = e.clientX - r.left;
+      const ny = e.clientY - r.top;
+      const dx = nx - prev.x;
+      const dy = ny - prev.y;
+      tps.set(e.pointerId, { x: nx, y: ny });
+      if (tps.size >= 2) {
+        const [a, b] = [...tps.values()];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        const bx = (mx - view.offX) / view.zoom; // 手指中点下的图板坐标（保持不动）
+        const bz = (my - view.offY) / view.zoom;
+        const z2 = clampTouchZoom((pinchZoom0 * dist) / pinchDist);
+        camFree = true;
+        zoom = z2;
+        zoomTarget = z2;
+        cam.x = bx - (mx - W / 2) / z2;
+        cam.z = bz - (my - H / 2) / z2;
+        clampCam();
+      } else {
+        if (tapCand && Math.hypot(nx - tapCand.x, ny - tapCand.y) > 8) panMoved = true;
+        camFree = true;
+        cam.x -= dx / view.zoom;
+        cam.z -= dy / view.zoom;
+        clampCam();
+      }
+    };
+    const onTouchUp = (e: PointerEvent) => {
+      const single = tps.size === 1 && tapCand?.id === e.pointerId;
+      const isTap = single && !panMoved && performance.now() - (tapCand?.t ?? 0) < 300;
+      const cand = tapCand;
+      tps.delete(e.pointerId);
+      if (tps.size < 2) pinchDist = 0;
+      if (isTap && cand) {
+        const bx = (cand.x - view.offX) / view.zoom;
+        const bz = (cand.y - view.offY) / view.zoom;
+        let best: (typeof orchPois)[number] | null = null;
+        let bestD = Infinity;
+        for (const p of orchPois) {
+          const d = Math.hypot(bx - p.x, bz - p.z);
+          const rr = Math.max(p.r, 28); // 触屏放宽命中半径
+          if (d < rr && d < bestD) {
+            best = p;
+            bestD = d;
+          }
+        }
+        useWorldStore.getState().setPoi(best); // 点空白处则收起卡片
+      }
+      tapCand = null;
+      panMoved = false;
+    };
+
+    if (isTouch) {
+      canvas.addEventListener("pointerdown", onTouchDown);
+      canvas.addEventListener("pointermove", onTouchMove);
+      canvas.addEventListener("pointerup", onTouchUp);
+      canvas.addEventListener("pointercancel", onTouchUp);
+    } else {
+      canvas.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("pointercancel", onPointerUp);
+    }
     const pencil: Array<{ x: number; z: number; at: number }> = [];
     const tail: Array<[number, number]> = [];
     let pencilTimer = 0;
@@ -296,20 +402,26 @@ export default function OrchWorld() {
 
     const pollPoi = () => {
       const st = useWorldStore.getState();
-      let best: (typeof orchPois)[number] | null = null;
-      let bestD = Infinity;
-      for (const p of orchPois) {
-        const d = Math.hypot(carState.x - p.x, carState.z - p.z);
-        if (d < p.r && d < bestD) {
-          best = p;
-          bestD = d;
+      // 触屏：POI 只由轻点设定，此处不做胶囊邻近判定（否则会覆盖点选）
+      if (!isTouch) {
+        let best: (typeof orchPois)[number] | null = null;
+        let bestD = Infinity;
+        for (const p of orchPois) {
+          const d = Math.hypot(carState.x - p.x, carState.z - p.z);
+          if (d < p.r && d < bestD) {
+            best = p;
+            bestD = d;
+          }
         }
+        if (st.poi?.id !== best?.id) st.setPoi(best);
       }
-      if (st.poi?.id !== best?.id) st.setPoi(best);
+      // 分区提示：桌面看胶囊所在，触屏看镜头中心所在
+      const rx = isTouch ? cam.x : carState.x;
+      const rz = isTouch ? cam.z : carState.z;
       let bd: (typeof orchDistricts)[number] | null = null;
       let dd = Infinity;
       for (const d of orchDistricts) {
-        const dist = Math.hypot(carState.x - d.x, carState.z - d.z);
+        const dist = Math.hypot(rx - d.x, rz - d.z);
         if (dist < d.r && dist < dd) {
           bd = d;
           dd = dist;
@@ -347,6 +459,32 @@ export default function OrchWorld() {
       const st = useWorldStore.getState();
       const driving = st.phase === "drive";
 
+      // 触屏进场：一按启动就把整张图 fit 到全屏，先看全貌再放大
+      if (isTouch && driving && prevPhase !== "drive") {
+        zoom = zoomTarget = fitZoom;
+        cam.x = BOARD.w / 2;
+        cam.z = BOARD.h / 2;
+        camFree = true;
+      }
+      prevPhase = st.phase;
+
+      // 触屏缩放按钮（HUD → 世界）
+      if (isTouch) {
+        if (input.fitReq) {
+          input.fitReq = false;
+          zoomTarget = fitZoom;
+          cam.x = BOARD.w / 2;
+          cam.z = BOARD.h / 2;
+          camFree = true;
+        }
+        if (input.zoomStep) {
+          zoomTarget = clampTouchZoom(zoomTarget * (input.zoomStep > 0 ? 1.35 : 1 / 1.35));
+          input.zoomStep = 0;
+          camFree = true;
+        }
+        if (input.joyActive) camFree = false; // 一推摇杆，相机回到跟随胶囊
+      }
+
       stepCapsule(dt, driving, t);
       pollTimer += dt;
       if (pollTimer > 0.12) {
@@ -375,12 +513,18 @@ export default function OrchWorld() {
       }
 
       /* 相机 */
-      zoom += (ZOOMS[zoomIdx] - zoom) * Math.min(1, 8 * dt);
+      zoom += (zoomTarget - zoom) * Math.min(1, 8 * dt);
       if (driving) {
-        const tx = carState.x + Math.max(-70, Math.min(70, vel.x * 0.4));
-        const tz = carState.z + Math.max(-70, Math.min(70, vel.z * 0.4));
-        cam.x += (tx - cam.x) * Math.min(1, 5 * dt);
-        cam.z += (tz - cam.z) * Math.min(1, 5 * dt);
+        if (isTouch && camFree) {
+          // 自由镜头：位置由拖动/双指/按钮设定，这里只做边界收拢
+          cam.x = Math.max(0, Math.min(BOARD.w, cam.x));
+          cam.z = Math.max(0, Math.min(BOARD.h, cam.z));
+        } else {
+          const tx = carState.x + Math.max(-70, Math.min(70, vel.x * 0.4));
+          const tz = carState.z + Math.max(-70, Math.min(70, vel.z * 0.4));
+          cam.x += (tx - cam.x) * Math.min(1, 5 * dt);
+          cam.z += (tz - cam.z) * Math.min(1, 5 * dt);
+        }
       } else {
         cam.x += (700 + Math.sin(t * 0.18) * 70 - cam.x) * Math.min(1, 1.2 * dt);
         cam.z += (500 + Math.cos(t * 0.14) * 45 - cam.z) * Math.min(1, 1.2 * dt);
@@ -639,8 +783,11 @@ export default function OrchWorld() {
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
         const mmx = W - 158;
         const mmy = 54;
-        const vx = 12 + (carState.x - 40) * 0.082 - 17;
-        const vy = 20 + (carState.z - 40) * 0.068 - 12;
+        // 触屏自由镜头：小地图光标跟镜头中心；否则跟胶囊
+        const rx = isTouch && camFree ? cam.x : carState.x;
+        const rz = isTouch && camFree ? cam.z : carState.z;
+        const vx = 12 + (rx - 40) * 0.082 - 17;
+        const vy = 20 + (rz - 40) * 0.068 - 12;
         drawMinimapV2(g, mmx, mmy, t, [Math.max(4, Math.min(94, vx)), Math.max(14, Math.min(70, vy))]);
       }
     };
@@ -650,17 +797,28 @@ export default function OrchWorld() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("wheel", onWheel);
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointercancel", onPointerUp);
+      if (isTouch) {
+        canvas.removeEventListener("pointerdown", onTouchDown);
+        canvas.removeEventListener("pointermove", onTouchMove);
+        canvas.removeEventListener("pointerup", onTouchUp);
+        canvas.removeEventListener("pointercancel", onTouchUp);
+      } else {
+        canvas.removeEventListener("pointerdown", onPointerDown);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+        window.removeEventListener("pointercancel", onPointerUp);
+      }
       detachKb();
     };
   }, []);
 
   return (
     <div className="theme-paper fixed inset-0 overflow-hidden bg-bg text-text select-none">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ touchAction: "none" }}
+      />
       <Hud
         desc={
           <>

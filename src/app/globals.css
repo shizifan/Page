@@ -210,14 +210,16 @@ body {
 }
 
 /* 3D 世界 POI 卡片入场 */
+/* 仅动 Y 与透明度：水平居中交给 Tailwind 的 translate 属性（-translate-x-1/2），
+   否则 transform 里的 translate(-50%) 会与之叠加，把卡片整整偏移一个宽度 */
 @keyframes hud-card-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 14px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 .hud-card {
@@ -228,20 +230,33 @@ body {
 @keyframes hud-toast-cycle {
   0% {
     opacity: 0;
-    transform: translate(-50%, -8px);
+    transform: translateY(-8px);
   }
   10%,
   80% {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -4px);
+    transform: translateY(-4px);
   }
 }
 .hud-toast {
   animation: hud-toast-cycle 2.8s ease both;
+}
+
+/* 触屏手势提示：淡入后稳定停留，由 JS 计时卸载 */
+@keyframes hud-hint-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.hud-hint {
+  animation: hud-hint-in 0.4s ease both;
 }
 @media (prefers-reduced-motion: reduce) {
   .hud-card {

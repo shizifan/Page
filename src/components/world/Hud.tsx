@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { WORLD, districts, type Poi } from "@/data/world";
 import { input } from "./controls";
 import { carState, useWorldStore } from "./store";
@@ -41,9 +41,14 @@ export function Hud({
   minimap?: boolean;
 }) {
   const phase = useWorldStore((s) => s.phase);
+  const poi = useWorldStore((s) => s.poi);
   const touch = useSyncExternalStore(
     noopSubscribe,
-    () => "ontouchstart" in window,
+    () =>
+      new URLSearchParams(window.location.search).has("touch") || // 调试：?touch=1 强制触屏 UI
+      window.matchMedia?.("(pointer: coarse)").matches ||
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0,
     () => false
   );
 
@@ -56,7 +61,9 @@ export function Hud({
           {minimap && <Minimap cfg={mapCfg ?? defaultMapCfg} />}
           <DistrictToast />
           <PoiCard />
-          {touch && <Joystick />}
+          {touch && <ZoomControl />}
+          {touch && !poi && <TouchHint />}
+          {touch && !poi && <Joystick />}
           {!touch && (
             <div className="absolute bottom-5 right-5 z-20 mono text-[11px] tracking-widest text-faint pointer-events-none hidden md:block">
               {hint ?? "WASD 驾驶 · SHIFT 加速 · R 复位 · 滚轮 缩放"}
@@ -81,27 +88,28 @@ function IntroOverlay({
 }) {
   const enter = useWorldStore((s) => s.enter);
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]">
+    <div className="absolute inset-0 z-40 overflow-y-auto bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]">
       <div className="blueprint absolute inset-0 pointer-events-none" aria-hidden="true" />
-      <div className="relative max-w-xl px-8 text-center">
-        <div className="mono text-xs text-faint tracking-widest flex items-center justify-center gap-3 mb-8">
+      <div className="relative min-h-full flex items-center justify-center px-6 py-8">
+        <div className="max-w-xl w-full text-center">
+        <div className="mono text-xs text-faint tracking-widest flex items-center justify-center gap-3 mb-5 sm:mb-8">
           <span className="dot-live" aria-hidden="true" />
           <span className="text-dim">WORLD ONLINE</span>
           <span aria-hidden="true">·</span>
           <span>SHIZIFAN.COM</span>
         </div>
 
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
+        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-3 sm:mb-4">
           石子凡
         </h1>
         <p className="text-lg md:text-xl text-accent mb-2">
           让 AI 为人创造价值
         </p>
-        <p className="mono text-xs text-faint tracking-[0.28em] mb-8">
+        <p className="mono text-xs text-faint tracking-[0.28em] mb-5 sm:mb-8">
           相信未来 / 笃行当下
         </p>
 
-        <p className="text-text text-lg md:text-xl font-medium leading-relaxed mb-8">
+        <p className="text-text text-base sm:text-lg md:text-xl font-medium leading-relaxed mb-6 sm:mb-8">
           {desc ?? (
             <>
               这是我的<span className="text-text">能力与产品地图</span>
@@ -112,10 +120,12 @@ function IntroOverlay({
         </p>
 
         {/* 操作说明 */}
-        <div className="flex items-center justify-center gap-8 mb-10">
+        <div className="flex items-center justify-center gap-8 mb-7 sm:mb-10">
           {touch ? (
-            <div className="mono text-xs text-dim tracking-wider">
-              左下角摇杆 驾驶
+            <div className="mono text-xs text-dim tracking-wider leading-relaxed">
+              双指缩放 · 拖动平移
+              <br />
+              点装置看详情 · 摇杆可驾驶
             </div>
           ) : (
             <>
@@ -160,9 +170,10 @@ function IntroOverlay({
           ))}
         </div>
 
-        <p className="mono text-[10px] text-faint tracking-wider mt-8">
-          随时按 R 复位 · 设备不给力请走简历版
+        <p className="mono text-[10px] text-faint tracking-wider mt-6 sm:mt-8">
+          {touch ? "点空白处收起卡片" : "随时按 R 复位"} · 设备不给力请走简历版
         </p>
+        </div>
       </div>
     </div>
   );
@@ -180,7 +191,7 @@ function Key({ label }: { label: string }) {
 
 function TopBar({ alts }: { alts?: AltLink[] }) {
   const chip =
-    "pointer-events-auto mono text-[11px] border border-line px-3 py-1.5 text-dim hover:text-accent hover:border-accent/50 transition-colors duration-200 bg-[rgba(250,246,234,0.75)]";
+    "pointer-events-auto mono text-xs border border-line px-3.5 py-2 text-dim hover:text-accent hover:border-accent/50 transition-colors duration-200 bg-[rgba(250,246,234,0.75)]";
   return (
     <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-4 pointer-events-none">
       <div className="flex items-center gap-2.5">
@@ -300,7 +311,7 @@ function PoiCard() {
   return (
     <div
       key={poi.id}
-      className="absolute bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-[min(92vw,560px)] pointer-events-none hud-card"
+      className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-[min(92vw,560px)] pointer-events-none hud-card"
     >
       <div className="border border-line-strong bg-[rgba(255,253,246,0.95)] backdrop-blur-md shadow-[4px_5px_0_rgba(42,48,55,0.08)]">
         {/* 顶带：卡片上唯一的彩色 */}
@@ -329,7 +340,7 @@ function PoiCard() {
         </div>
         {/* 正文 */}
         <div className="px-4 py-3">
-          <p className="text-[13px] text-dim leading-relaxed">{poi.body}</p>
+          <p className="text-sm sm:text-[13px] text-dim leading-relaxed">{poi.body}</p>
           {poi.tags && (
             <div className="flex flex-wrap gap-1.5 mt-2.5">
               {poi.tags.map((t) => (
@@ -376,6 +387,48 @@ function PoiLink({ poi }: { poi: Poi }) {
   );
 }
 
+/* ────────────────────────── 触屏缩放控件 ────────────────────────── */
+
+function ZoomControl() {
+  const btn =
+    "pointer-events-auto w-11 h-11 flex items-center justify-center border border-line-strong bg-[rgba(250,246,234,0.85)] backdrop-blur-sm text-dim active:bg-accent/15 select-none touch-none";
+  return (
+    <div className="absolute top-1/2 -translate-y-1/2 right-3 z-30 flex flex-col gap-2">
+      <button className={`${btn} text-xl leading-none`} onClick={() => (input.zoomStep = 1)} aria-label="放大">
+        ＋
+      </button>
+      <button className={`${btn} text-xl leading-none`} onClick={() => (input.zoomStep = -1)} aria-label="缩小">
+        －
+      </button>
+      <button
+        className={`${btn} mono text-[9px] tracking-tight leading-tight text-center`}
+        onClick={() => (input.fitReq = true)}
+        aria-label="看全貌"
+      >
+        看全貌
+      </button>
+    </div>
+  );
+}
+
+/* ────────────────────────── 触屏手势提示（短暂显示） ────────────────────────── */
+
+function TouchHint() {
+  const [show, setShow] = useState(true);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShow(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="hud-hint absolute bottom-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+      <div className="border border-line bg-[rgba(250,246,234,0.9)] backdrop-blur-sm px-4 py-2 text-center">
+        <p className="mono text-[11px] tracking-wide text-dim">双指缩放 · 拖动平移 · 点装置看详情</p>
+      </div>
+    </div>
+  );
+}
+
 /* ────────────────────────── 虚拟摇杆 ────────────────────────── */
 
 const JOY_R = 52;
@@ -383,6 +436,15 @@ const JOY_R = 52;
 function Joystick() {
   const knob = useRef<HTMLDivElement>(null);
   const active = useRef(false);
+
+  // 卸载（如卡片打开时）务必归零，避免胶囊被冻结的摇杆量一直推着走
+  useEffect(() => {
+    return () => {
+      input.joyActive = false;
+      input.joyX = 0;
+      input.joyY = 0;
+    };
+  }, []);
 
   const setKnob = (dx: number, dy: number) => {
     if (knob.current) {

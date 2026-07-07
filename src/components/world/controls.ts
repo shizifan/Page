@@ -12,6 +12,9 @@ export const input = {
   joyX: 0,
   joyY: 0,
   joyActive: false,
+  // 触屏缩放指令通道（HUD 按钮 → 世界循环消费）：+1 放大 / -1 缩小，fitReq 回到全貌
+  zoomStep: 0,
+  fitReq: false,
 };
 
 /** 归一化后的油门（-1 后退 .. 1 前进）与转向（-1 左 .. 1 右） */
