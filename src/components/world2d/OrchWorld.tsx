@@ -402,6 +402,14 @@ export default function OrchWorld() {
       if (isTap && cand) {
         const bx = (cand.x - view.offX) / view.zoom;
         const bz = (cand.y - view.offY) / view.zoom;
+        // 点击设胶囊目的地，镜头跟随
+        mouse.tx = bx;
+        mouse.tz = bz;
+        mouse.active = true;
+        mouse.held = false;
+        mouse.arriveAt = null;
+        camFree = false;
+        // POI 命中判定
         let best: (typeof orchPois)[number] | null = null;
         let bestD = Infinity;
         for (const p of orchPois) {
