@@ -52,18 +52,31 @@ export function Hud({
     () => false
   );
 
+  // iOS 微信内关闭 backdrop-filter（支持但 GPU 合成很慢）
+  const isIOSWechat =
+    typeof navigator !== "undefined" &&
+    /iPhone|iPad|iPod/.test(navigator.userAgent) &&
+    /MicroMessenger/.test(navigator.userAgent);
+
+  useEffect(() => {
+    if (isIOSWechat) {
+      document.documentElement.classList.add("ios-wechat");
+      return () => document.documentElement.classList.remove("ios-wechat");
+    }
+  }, [isIOSWechat]);
+
   return (
     <>
-      {phase === "intro" && <IntroOverlay touch={touch} alts={alts} desc={desc} />}
+      {phase === "intro" && <IntroOverlay touch={touch} alts={alts} desc={desc} iosWechat={isIOSWechat} />}
       {phase === "drive" && (
         <>
           <TopBar alts={alts} />
           {minimap && <Minimap cfg={mapCfg ?? defaultMapCfg} />}
-          <DistrictToast />
-          <PoiCard />
-          {touch && <ZoomControl />}
-          {touch && !poi && <TouchHint />}
-          {touch && !poi && <Joystick />}
+          <DistrictToast iosWechat={isIOSWechat} />
+          <PoiCard iosWechat={isIOSWechat} />
+          {touch && <ZoomControl iosWechat={isIOSWechat} />}
+          {touch && !poi && <TouchHint iosWechat={isIOSWechat} />}
+          {touch && !poi && <Joystick iosWechat={isIOSWechat} />}
           {!touch && (
             <div className="absolute bottom-5 right-5 z-20 mono text-[11px] tracking-widest text-faint pointer-events-none hidden md:block">
               {hint ?? "WASD 驾驶 · SHIFT 加速 · R 复位 · 滚轮 缩放"}
@@ -81,17 +94,22 @@ function IntroOverlay({
   touch,
   alts,
   desc,
+  iosWechat = false,
 }: {
   touch: boolean;
   alts?: AltLink[];
   desc?: React.ReactNode;
+  iosWechat?: boolean;
 }) {
   const enter = useWorldStore((s) => s.enter);
   // 手机（含微信浏览器）：点屏幕任意处进入地图；桌面维持点按钮
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const overlayBg = iosWechat
+    ? "bg-[rgba(241,235,221,0.92)]"
+    : "bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]";
   return (
     <div
-      className="absolute inset-0 z-40 overflow-y-auto bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]"
+      className={`absolute inset-0 z-40 overflow-y-auto ${overlayBg}`}
       onClick={touch ? enter : undefined}
     >
       <div className="blueprint absolute inset-0 pointer-events-none" aria-hidden="true" />
@@ -295,15 +313,19 @@ function Minimap({ cfg }: { cfg: MapCfg }) {
 
 /* ────────────────────────── 分区提示 ────────────────────────── */
 
-function DistrictToast() {
+function DistrictToast({ iosWechat = false }: { iosWechat?: boolean }) {
   const district = useWorldStore((s) => s.district);
   if (!district || district.id === "spawn") return null;
+  const glassBg = iosWechat
+    ? "bg-[rgba(250,246,234,0.92)]"
+    : "bg-[rgba(250,246,234,0.85)] backdrop-blur-sm";
   return (
     <div
       key={district.id}
-      className="hud-toast absolute top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+      className="hud-toast absolute left-1/2 z-20 pointer-events-none"
+      style={{ top: `calc(4rem + var(--safe-top, 0px))`, transform: "translateX(-50%)" }}
     >
-      <div className="border border-line bg-[rgba(250,246,234,0.85)] backdrop-blur-sm px-5 py-2 text-center">
+      <div className={`border border-line ${glassBg} px-5 py-2 text-center`}>
         <p className="text-sm font-medium">{district.name}</p>
         <p className="mono text-[9px] tracking-[0.3em] text-accent mt-0.5">
           {district.en}
@@ -317,16 +339,20 @@ function DistrictToast() {
 
 const HAND_FONT = "'Kaiti SC','STKaiti','KaiTi',cursive";
 
-function PoiCard() {
+function PoiCard({ iosWechat = false }: { iosWechat?: boolean }) {
   const poi = useWorldStore((s) => s.poi);
   if (!poi) return null;
   const hue = poi.hue ?? "#b45309";
+  const glassBg = iosWechat
+    ? "bg-[rgba(255,253,246,0.98)]"
+    : "bg-[rgba(255,253,246,0.95)] backdrop-blur-md";
   return (
     <div
       key={poi.id}
-      className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-[min(92vw,560px)] pointer-events-none hud-card"
+      className="absolute left-1/2 z-30 w-[min(92vw,560px)] pointer-events-none hud-card"
+      style={{ bottom: `calc(1.25rem + var(--safe-bottom, 0px))`, transform: "translateX(-50%)" }}
     >
-      <div className="border border-line-strong bg-[rgba(255,253,246,0.95)] backdrop-blur-md shadow-[4px_5px_0_rgba(42,48,55,0.08)]">
+      <div className={`border border-line-strong ${glassBg} shadow-[4px_5px_0_rgba(42,48,55,0.08)]`}>
         {/* 顶带：卡片上唯一的彩色 */}
         <div className="h-1.5" style={{ background: hue }} />
         {/* 图签式表头：编号章 | 名称 | 类别 */}
@@ -402,11 +428,17 @@ function PoiLink({ poi }: { poi: Poi }) {
 
 /* ────────────────────────── 触屏缩放控件 ────────────────────────── */
 
-function ZoomControl() {
+function ZoomControl({ iosWechat = false }: { iosWechat?: boolean }) {
+  const glassBg = iosWechat
+    ? "bg-[rgba(250,246,234,0.92)]"
+    : "bg-[rgba(250,246,234,0.85)] backdrop-blur-sm";
   const btn =
-    "pointer-events-auto w-11 h-11 flex items-center justify-center border border-line-strong bg-[rgba(250,246,234,0.85)] backdrop-blur-sm text-dim active:bg-accent/15 select-none touch-none";
+    `pointer-events-auto w-11 h-11 flex items-center justify-center border border-line-strong ${glassBg} text-dim active:bg-accent/15 select-none touch-none`;
   return (
-    <div className="absolute top-1/2 -translate-y-1/2 left-3 z-30 flex flex-col gap-2">
+    <div
+      className="absolute z-30 flex flex-col gap-2"
+      style={{ top: "50%", transform: "translateY(-50%)", left: `calc(0.75rem + var(--safe-left, 0px))` }}
+    >
       <button className={`${btn} text-xl leading-none`} onClick={() => (input.zoomStep = 1)} aria-label="放大">
         ＋
       </button>
@@ -426,8 +458,11 @@ function ZoomControl() {
 
 /* ────────────────────────── 触屏手势提示（短暂显示） ────────────────────────── */
 
-function TouchHint() {
+function TouchHint({ iosWechat = false }: { iosWechat?: boolean }) {
   const [show, setShow] = useState(true);
+  const glassBg = iosWechat
+    ? "bg-[rgba(250,246,234,0.95)]"
+    : "bg-[rgba(250,246,234,0.9)] backdrop-blur-sm";
   useEffect(() => {
     const timer = window.setTimeout(() => setShow(false), 5000);
     return () => window.clearTimeout(timer);
@@ -435,7 +470,7 @@ function TouchHint() {
   if (!show) return null;
   return (
     <div className="hud-hint absolute bottom-40 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-      <div className="border border-line bg-[rgba(250,246,234,0.9)] backdrop-blur-sm px-4 py-2 text-center">
+      <div className={`border border-line ${glassBg} px-4 py-2 text-center`}>
         <p className="mono text-[11px] tracking-wide text-dim">双指缩放 · 拖动平移 · 点装置看详情</p>
       </div>
     </div>
@@ -446,9 +481,12 @@ function TouchHint() {
 
 const JOY_R = 52;
 
-function Joystick() {
+function Joystick({ iosWechat = false }: { iosWechat?: boolean }) {
   const knob = useRef<HTMLDivElement>(null);
   const active = useRef(false);
+  const glassBg = iosWechat
+    ? "bg-[rgba(250,246,234,0.8)]"
+    : "bg-[rgba(250,246,234,0.6)] backdrop-blur-sm";
 
   // 卸载（如卡片打开时）务必归零，避免胶囊被冻结的摇杆量一直推着走
   useEffect(() => {
@@ -496,8 +534,13 @@ function Joystick() {
 
   return (
     <div
-      className="absolute bottom-7 right-7 z-30 rounded-full border border-line-strong bg-[rgba(250,246,234,0.6)] backdrop-blur-sm flex items-center justify-center touch-none"
-      style={{ width: JOY_R * 2 + 40, height: JOY_R * 2 + 40 }}
+      className={`absolute z-30 rounded-full border border-line-strong ${glassBg} flex items-center justify-center touch-none`}
+      style={{
+        width: JOY_R * 2 + 40,
+        height: JOY_R * 2 + 40,
+        bottom: `calc(1.75rem + var(--safe-bottom, 0px))`,
+        right: `calc(1.75rem + var(--safe-right, 0px))`,
+      }}
       onPointerDown={onPointer}
       onPointerMove={onPointer}
       onPointerUp={onPointer}
