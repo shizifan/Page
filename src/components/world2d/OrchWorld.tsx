@@ -513,9 +513,9 @@ export default function OrchWorld() {
       const st = useWorldStore.getState();
       const driving = st.phase === "drive";
 
-      // 触屏进场：一按启动就把整张图 fit 到全屏，先看全貌再放大
+      // 触屏进场：默认放大到可读级别，竖屏只看局部，摇杆驾驶探索
       if (isTouch && driving && prevPhase !== "drive") {
-        zoom = zoomTarget = fitZoom;
+        zoom = zoomTarget = Math.max(1.0, fitZoom);
         cam.x = BOARD.w / 2;
         cam.z = BOARD.h / 2;
         camFree = true;
@@ -569,15 +569,20 @@ export default function OrchWorld() {
       /* 相机 */
       zoom += (zoomTarget - zoom) * Math.min(1, 8 * dt);
       if (driving) {
+        // zoom-aware 边界：高 zoom 时不露出图板外空白
+        const halfW = W / (2 * zoom);
+        const halfH = H / (2 * zoom);
         if (isTouch && camFree) {
-          // 自由镜头：位置由拖动/双指/按钮设定，这里只做边界收拢
-          cam.x = Math.max(0, Math.min(BOARD.w, cam.x));
-          cam.z = Math.max(0, Math.min(BOARD.h, cam.z));
+          // 自由镜头：位置由拖动/双指/按钮设定
+          cam.x = Math.max(halfW, Math.min(BOARD.w - halfW, cam.x));
+          cam.z = Math.max(halfH, Math.min(BOARD.h - halfH, cam.z));
         } else {
           const tx = carState.x + Math.max(-70, Math.min(70, vel.x * 0.4));
           const tz = carState.z + Math.max(-70, Math.min(70, vel.z * 0.4));
           cam.x += (tx - cam.x) * Math.min(1, 5 * dt);
           cam.z += (tz - cam.z) * Math.min(1, 5 * dt);
+          cam.x = Math.max(halfW, Math.min(BOARD.w - halfW, cam.x));
+          cam.z = Math.max(halfH, Math.min(BOARD.h - halfH, cam.z));
         }
       } else {
         cam.x += (700 + Math.sin(t * 0.18) * 70 - cam.x) * Math.min(1, 1.2 * dt);

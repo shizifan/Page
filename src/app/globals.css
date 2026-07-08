@@ -283,6 +283,15 @@ body {
   animation: hud-pulse 1.8s ease-in-out infinite;
 }
 
+/* 手机旋转提示图标动画 */
+@keyframes rotate-phone-hint {
+  0%, 100% { transform: rotate(0deg); }
+  40%, 60% { transform: rotate(90deg); }
+}
+.anim-rotate-phone {
+  animation: rotate-phone-hint 2.6s ease-in-out infinite;
+}
+
 /* 横放矮屏（手机横屏，视口高 ≤520px）：压缩开场排版，尽量一屏放下不用滚动 */
 @media (max-height: 520px) {
   .intro-panel h1 {

@@ -104,9 +104,66 @@ function IntroOverlay({
   const enter = useWorldStore((s) => s.enter);
   // 手机（含微信浏览器）：点屏幕任意处进入地图；桌面维持点按钮
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+
+  // 检测竖屏/横屏，竖屏时引导用户旋转手机
+  const [isPortrait, setIsPortrait] = useState(true);
+  useEffect(() => {
+    const check = () => setIsPortrait(window.innerHeight > window.innerWidth);
+    check();
+    const mq = window.matchMedia("(orientation: portrait)");
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
+  }, []);
+
   const overlayBg = iosWechat
     ? "bg-[rgba(241,235,221,0.92)]"
     : "bg-[rgba(241,235,221,0.9)] backdrop-blur-[2px]";
+
+  // 手机竖屏：旋转引导；手机横屏：探索说明；桌面：键盘说明
+  const guideBlock = () => {
+    if (!touch) {
+      return (
+        <>
+          <div className="flex flex-col items-center gap-1.5">
+            <Key label="W" />
+            <div className="flex gap-1.5">
+              <Key label="A" />
+              <Key label="S" />
+              <Key label="D" />
+            </div>
+          </div>
+          <div className="mono text-[11px] text-faint text-left leading-loose tracking-wider">
+            <p><span className="text-dim">WASD / 方向键</span> 驾驶</p>
+            <p><span className="text-dim">SHIFT</span> 加速 · <span className="text-dim">R</span> 复位</p>
+            <p><span className="text-dim">滚轮</span> 缩放视野</p>
+          </div>
+        </>
+      );
+    }
+    if (isPortrait) {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          {/* 手机旋转图标 */}
+          <div className="anim-rotate-phone w-14 h-14 flex items-center justify-center">
+            <svg viewBox="0 0 40 72" className="w-9 h-16 text-accent" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="4" width="32" height="64" rx="5" />
+              <line x1="20" y1="56" x2="20" y2="56" strokeWidth="3.5" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold tracking-wide">旋转手机，横屏探索</p>
+          <p className="text-xs text-faint">画面为宽屏设计，横屏视野更完整</p>
+        </div>
+      );
+    }
+    return (
+      <div className="mono text-xs text-dim tracking-wider leading-relaxed">
+        摇杆驾驶 · 探索局部
+        <br />
+        双指缩放 · 点装置看详情
+      </div>
+    );
+  };
+
   return (
     <div
       className={`absolute inset-0 z-40 overflow-y-auto ${overlayBg}`}
@@ -132,41 +189,22 @@ function IntroOverlay({
           相信未来 / 笃行当下
         </p>
 
-        <p className="intro-desc text-text text-base sm:text-lg md:text-xl font-medium leading-relaxed mb-6 sm:mb-8">
-          {desc ?? (
-            <>
-              这是我的<span className="text-text">能力与产品地图</span>
-              ——北边是 6 个已上线的产品，东边是能力公园，
-              南边是企业级工程，西边是观点大道。开车逛逛，撞翻几个箱子也没关系。
-            </>
-          )}
-        </p>
+        {/* 手机竖屏时压缩描述文案，给旋转引导让空间 */}
+        {(!touch || !isPortrait) && (
+          <p className="intro-desc text-text text-base sm:text-lg md:text-xl font-medium leading-relaxed mb-6 sm:mb-8">
+            {desc ?? (
+              <>
+                这是我的<span className="text-text">能力与产品地图</span>
+                ——北边是 6 个已上线的产品，东边是能力公园，
+                南边是企业级工程，西边是观点大道。开车逛逛，撞翻几个箱子也没关系。
+              </>
+            )}
+          </p>
+        )}
 
-        {/* 操作说明 */}
-        <div className="intro-ctrls flex items-center justify-center gap-8 mb-7 sm:mb-10">
-          {touch ? (
-            <div className="mono text-xs text-dim tracking-wider leading-relaxed">
-              双指缩放 · 拖动平移
-              <br />
-              点装置看详情 · 摇杆可驾驶
-            </div>
-          ) : (
-            <>
-              <div className="flex flex-col items-center gap-1.5">
-                <Key label="W" />
-                <div className="flex gap-1.5">
-                  <Key label="A" />
-                  <Key label="S" />
-                  <Key label="D" />
-                </div>
-              </div>
-              <div className="mono text-[11px] text-faint text-left leading-loose tracking-wider">
-                <p><span className="text-dim">WASD / 方向键</span> 驾驶</p>
-                <p><span className="text-dim">SHIFT</span> 加速 · <span className="text-dim">R</span> 复位</p>
-                <p><span className="text-dim">滚轮</span> 缩放视野</p>
-              </div>
-            </>
-          )}
+        {/* 操作说明 / 旋转引导 */}
+        <div className="intro-ctrls flex items-center justify-center mb-7 sm:mb-10">
+          {guideBlock()}
         </div>
 
         <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -197,12 +235,12 @@ function IntroOverlay({
 
         {touch && (
           <p className="mono text-[11px] text-accent tracking-wider mt-4 hud-pulse">
-            — 轻触屏幕任意处进入 —
+            {isPortrait ? "— 轻触屏幕任意处进入 —" : "— 轻触屏幕任意处进入 —"}
           </p>
         )}
 
         <p className="intro-foot mono text-[10px] text-faint tracking-wider mt-6 sm:mt-8">
-          {touch ? "横屏体验更佳 · 点空白处收起卡片" : "随时按 R 复位"} · 设备不给力请走简历版
+          {touch ? "摇杆驾驶探索 · 点空白处收起卡片" : "随时按 R 复位"}
         </p>
         </div>
       </div>
@@ -479,7 +517,7 @@ function TouchHint({ iosWechat = false }: { iosWechat?: boolean }) {
 
 /* ────────────────────────── 虚拟摇杆 ────────────────────────── */
 
-const JOY_R = 52;
+const JOY_R = 36;
 
 function Joystick({ iosWechat = false }: { iosWechat?: boolean }) {
   const knob = useRef<HTMLDivElement>(null);
@@ -536,8 +574,8 @@ function Joystick({ iosWechat = false }: { iosWechat?: boolean }) {
     <div
       className={`absolute z-30 rounded-full border border-line-strong ${glassBg} flex items-center justify-center touch-none`}
       style={{
-        width: JOY_R * 2 + 40,
-        height: JOY_R * 2 + 40,
+        width: JOY_R * 2 + 28,
+        height: JOY_R * 2 + 28,
         bottom: `calc(1.75rem + var(--safe-bottom, 0px))`,
         right: `calc(1.75rem + var(--safe-right, 0px))`,
       }}
@@ -549,7 +587,7 @@ function Joystick({ iosWechat = false }: { iosWechat?: boolean }) {
       <div
         ref={knob}
         className="rounded-full bg-accent/85 will-change-transform"
-        style={{ width: 46, height: 46 }}
+        style={{ width: 32, height: 32 }}
       />
     </div>
   );
