@@ -456,8 +456,8 @@ export default function OrchWorld() {
 
     const pollPoi = () => {
       const st = useWorldStore.getState();
-      // 触屏自由平移时 POI 由轻点设定；摇杆驾驶（镜头跟胶囊）时邻近自动弹出
-      if (!isTouch || !camFree) {
+      // 触屏：POI 由轻点/拖动平移探索设定
+      if (!isTouch) {
         let best: (typeof orchPois)[number] | null = null;
         let bestD = Infinity;
         for (const p of orchPois) {

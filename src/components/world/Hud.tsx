@@ -76,7 +76,6 @@ export function Hud({
           <PoiCard iosWechat={isIOSWechat} />
           {touch && <ZoomControl iosWechat={isIOSWechat} />}
           {touch && !poi && <TouchHint iosWechat={isIOSWechat} />}
-          {touch && !poi && <Joystick iosWechat={isIOSWechat} />}
           {!touch && (
             <div className="absolute bottom-5 right-5 z-20 mono text-[11px] tracking-widest text-faint pointer-events-none hidden md:block">
               {hint ?? "WASD 驾驶 · SHIFT 加速 · R 复位 · 滚轮 缩放"}
@@ -157,9 +156,9 @@ function IntroOverlay({
     }
     return (
       <div className="mono text-xs text-dim tracking-wider leading-relaxed">
-        摇杆驾驶 · 探索局部
+        拖动平移 · 双指缩放
         <br />
-        双指缩放 · 点装置看详情
+        点装置看详情
       </div>
     );
   };
@@ -240,7 +239,7 @@ function IntroOverlay({
         )}
 
         <p className="intro-foot mono text-[10px] text-faint tracking-wider mt-6 sm:mt-8">
-          {touch ? "摇杆驾驶探索 · 点空白处收起卡片" : "随时按 R 复位"}
+          {touch ? "拖动平移探索 · 点空白处收起卡片" : "随时按 R 复位"}
         </p>
         </div>
       </div>
@@ -387,7 +386,7 @@ function PoiCard({ iosWechat = false }: { iosWechat?: boolean }) {
   return (
     <div
       key={poi.id}
-      className="absolute left-1/2 z-30 w-[min(92vw,560px)] pointer-events-none hud-card"
+      className="absolute left-1/2 z-30 w-[min(90vw,400px)] pointer-events-none hud-card"
       style={{ bottom: `calc(1.25rem + var(--safe-bottom, 0px))`, transform: "translateX(-50%)" }}
     >
       <div className={`border border-line-strong ${glassBg} shadow-[4px_5px_0_rgba(42,48,55,0.08)]`}>
@@ -511,84 +510,6 @@ function TouchHint({ iosWechat = false }: { iosWechat?: boolean }) {
       <div className={`border border-line ${glassBg} px-4 py-2 text-center`}>
         <p className="mono text-[11px] tracking-wide text-dim">双指缩放 · 拖动平移 · 点装置看详情</p>
       </div>
-    </div>
-  );
-}
-
-/* ────────────────────────── 虚拟摇杆 ────────────────────────── */
-
-const JOY_R = 36;
-
-function Joystick({ iosWechat = false }: { iosWechat?: boolean }) {
-  const knob = useRef<HTMLDivElement>(null);
-  const active = useRef(false);
-  const glassBg = iosWechat
-    ? "bg-[rgba(250,246,234,0.8)]"
-    : "bg-[rgba(250,246,234,0.6)] backdrop-blur-sm";
-
-  // 卸载（如卡片打开时）务必归零，避免胶囊被冻结的摇杆量一直推着走
-  useEffect(() => {
-    return () => {
-      input.joyActive = false;
-      input.joyX = 0;
-      input.joyY = 0;
-    };
-  }, []);
-
-  const setKnob = (dx: number, dy: number) => {
-    if (knob.current) {
-      knob.current.style.transform = `translate(${dx}px, ${dy}px)`;
-    }
-  };
-
-  const onPointer = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    if (e.type === "pointerdown") {
-      active.current = true;
-      el.setPointerCapture(e.pointerId);
-    }
-    if (!active.current) return;
-    if (e.type === "pointerup" || e.type === "pointercancel") {
-      active.current = false;
-      input.joyActive = false;
-      input.joyX = 0;
-      input.joyY = 0;
-      setKnob(0, 0);
-      return;
-    }
-    const rect = el.getBoundingClientRect();
-    let dx = e.clientX - (rect.left + rect.width / 2);
-    let dy = e.clientY - (rect.top + rect.height / 2);
-    const d = Math.hypot(dx, dy);
-    if (d > JOY_R) {
-      dx = (dx / d) * JOY_R;
-      dy = (dy / d) * JOY_R;
-    }
-    input.joyActive = true;
-    input.joyX = dx / JOY_R;
-    input.joyY = dy / JOY_R;
-    setKnob(dx, dy);
-  };
-
-  return (
-    <div
-      className={`absolute z-30 rounded-full border border-line-strong ${glassBg} flex items-center justify-center touch-none`}
-      style={{
-        width: JOY_R * 2 + 28,
-        height: JOY_R * 2 + 28,
-        bottom: `calc(1.75rem + var(--safe-bottom, 0px))`,
-        right: `calc(1.75rem + var(--safe-right, 0px))`,
-      }}
-      onPointerDown={onPointer}
-      onPointerMove={onPointer}
-      onPointerUp={onPointer}
-      onPointerCancel={onPointer}
-    >
-      <div
-        ref={knob}
-        className="rounded-full bg-accent/85 will-change-transform"
-        style={{ width: 32, height: 32 }}
-      />
     </div>
   );
 }
