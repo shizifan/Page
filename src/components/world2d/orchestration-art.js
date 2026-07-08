@@ -36,16 +36,11 @@ const F_MONO = `'JetBrains Mono',Menlo,Consolas,monospace`;
 const F_HAND = `'Kaiti SC','STKaiti','KaiTi','SimKai',cursive`;
 
 /* ── 基础 ── */
-let txtScale = 1;
-export function setTxtScale(s) { txtScale = s; }
-export function getTxtScale() { return txtScale; }
-
 export function txt(g, s, x, y, o = {}) {
   const { size = 12, c = C.ink, f = F_SANS, al = "center", bl = "middle", w = 600, rot = 0, alpha = 1 } = o;
-  const scaledSize = size * txtScale;
   g.save(); g.globalAlpha = alpha; g.translate(x, y);
   if (rot) g.rotate((rot * Math.PI) / 180);
-  g.font = `${w} ${scaledSize}px ${f}`; g.fillStyle = c; g.textAlign = al; g.textBaseline = bl;
+  g.font = `${w} ${size}px ${f}`; g.fillStyle = c; g.textAlign = al; g.textBaseline = bl;
   g.fillText(s, 0, 0); g.restore();
 }
 export const FONTS = { sans: F_SANS, mono: F_MONO, hand: F_HAND };

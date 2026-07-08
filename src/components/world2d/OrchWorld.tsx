@@ -74,7 +74,6 @@ import {
   sRR,
   txt,
   via,
-  setTxtScale,
 } from "./orchestration-art-v2";
 
 /* ────────────────────────── 胶囊物理（全向直接移动） ────────────────────────── */
@@ -236,28 +235,10 @@ export default function OrchWorld() {
         "ontouchstart" in window ||
         navigator.maxTouchPoints > 0);
 
-    if (isTouch) {
-      setTxtScale(1.25); // 触屏文字放大，改善移动端可读性
-    }
-
     let W = 0;
     let H = 0;
     let dpr = 1;
     let fitZoom = 0.3; // 让整张图板铺满屏幕的缩放（进场默认视图）
-
-    // 方格纸离屏缓存：114 次 fillRect → 1 次 drawImage
-    let gridCache: HTMLCanvasElement | null = null;
-    const buildGridCache = () => {
-      gridCache = document.createElement("canvas");
-      gridCache.width = (BOARD.w - 80) * dpr;
-      gridCache.height = (BOARD.h - 80) * dpr;
-      const gc = gridCache.getContext("2d")!;
-      gc.setTransform(dpr, 0, 0, dpr, 0, 0);
-      gc.fillStyle = C.grid;
-      for (let x = 0; x <= BOARD.w - 80; x += 20) gc.fillRect(x, 0, x % 100 === 0 ? 1.4 : 0.6, BOARD.h - 80);
-      for (let y = 0; y <= BOARD.h - 80; y += 20) gc.fillRect(0, y, BOARD.w - 80, y % 100 === 0 ? 1.4 : 0.6);
-    };
-
     const resize = () => {
       const r = canvas.parentElement!.getBoundingClientRect();
       W = Math.max(320, r.width | 0);
@@ -266,16 +247,9 @@ export default function OrchWorld() {
       canvas.width = W * dpr;
       canvas.height = H * dpr;
       fitZoom = Math.min(W / BOARD.w, H / BOARD.h) * 0.98;
-      buildGridCache();
     };
     resize();
-    const setVh = () => {
-      document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
-    };
-    setVh();
     window.addEventListener("resize", resize);
-    window.addEventListener("resize", setVh);
-    window.addEventListener("orientationchange", setVh);
 
     let zoomIdx = 1;
     let zoom = ZOOMS[zoomIdx];
@@ -348,8 +322,6 @@ export default function OrchWorld() {
       if (useWorldStore.getState().phase !== "drive") return;
       const r = canvas.getBoundingClientRect();
       const pt = { x: e.clientX - r.left, y: e.clientY - r.top };
-      // 左边缘 20px：放行微信返回手势，不做拦截
-      if (pt.x < 20) return;
       tps.set(e.pointerId, pt);
       canvas.setPointerCapture?.(e.pointerId);
       if (tps.size === 1) {
@@ -429,27 +401,12 @@ export default function OrchWorld() {
       window.addEventListener("pointerup", onPointerUp);
       window.addEventListener("pointercancel", onPointerUp);
     }
-    // 全局阻止 touchmove（防止微信页面滚动/弹跳）
-    const preventTouchMove = (e: TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest(".poi-scrollable")) return;
-      e.preventDefault();
-    };
-    document.addEventListener("touchmove", preventTouchMove, { passive: false });
-
     const pencil: Array<{ x: number; z: number; at: number }> = [];
     const tail: Array<[number, number]> = [];
     let pencilTimer = 0;
     let pollTimer = 0;
     let focus: { id: string; since: number } | null = null;
     let last = performance.now();
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        last = performance.now(); // 防 dt 积压导致胶囊瞬移
-        input.up = input.down = input.left = input.right = input.boost = false;
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
     let raf = 0;
 
     const pollPoi = () => {
@@ -606,7 +563,9 @@ export default function OrchWorld() {
       fRR(g, 90, 560, 430, 350, 40, C.washR, 0.75);
       g.save();
       g.globalAlpha = 0.5;
-      if (gridCache) g.drawImage(gridCache, 40, 40);
+      g.fillStyle = C.grid;
+      for (let x = 40; x <= BOARD.w - 40; x += 20) g.fillRect(x, 40, x % 100 === 0 ? 1.4 : 0.6, BOARD.h - 80);
+      for (let y = 40; y <= BOARD.h - 40; y += 20) g.fillRect(40, y, BOARD.w - 80, y % 100 === 0 ? 1.4 : 0.6);
       g.restore();
       g.strokeStyle = C.ink;
       g.lineWidth = 2;
@@ -846,13 +805,9 @@ export default function OrchWorld() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("resize", setVh);
-      window.removeEventListener("orientationchange", setVh);
       window.removeEventListener("resize", onResizeTouch);
       window.removeEventListener("orientationchange", onResizeTouch);
       window.removeEventListener("wheel", onWheel);
-      document.removeEventListener("visibilitychange", onVisibility);
-      document.removeEventListener("touchmove", preventTouchMove);
       if (isTouch) {
         canvas.removeEventListener("pointerdown", onTouchDown);
         canvas.removeEventListener("pointermove", onTouchMove);
@@ -869,10 +824,7 @@ export default function OrchWorld() {
   }, []);
 
   return (
-    <div
-      className="theme-paper fixed inset-x-0 top-0 overflow-hidden bg-bg text-text select-none"
-      style={{ height: "calc(var(--vh, 1vh) * 100)" }}
-    >
+    <div className="theme-paper fixed inset-0 overflow-hidden bg-bg text-text select-none">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"

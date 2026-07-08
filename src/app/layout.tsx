@@ -32,23 +32,13 @@ export const metadata: Metadata = {
     "智能体",
     "企业 AI 培训",
   ],
-  other: { "theme-color": "#f1ebdd" },
   openGraph: {
     title: "石子凡 · AI 架构师",
     description: "相信未来，笃行当下，让 AI 为人创造价值。",
     url: "https://shizifan.com",
     locale: "zh_CN",
     type: "website",
-    images: [{ url: "https://www.shizifan.com/og-image.png", width: 1200, height: 630 }],
   },
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 3,
-  userScalable: true,
-  viewportFit: "cover",
 };
 
 export default function RootLayout({
